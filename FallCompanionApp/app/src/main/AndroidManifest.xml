@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.fallcompanion">
+
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/notification_icon"
+        android:label="TrustFall"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name="com.example.fallcompanion.MainActivity"
+                  android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.example.fallcompanion.Bluetooth"
+            android:parentActivityName="com.example.fallcompanion.MainActivity" />
+        <activity android:name="com.example.fallcompanion.EmergencyContacts"
+            android:parentActivityName="com.example.fallcompanion.MainActivity" />
+        <activity android:name="com.example.fallcompanion.AlertSettings"
+            android:parentActivityName="com.example.fallcompanion.MainActivity" />
+        <activity android:name="com.example.fallcompanion.FallData"
+            android:parentActivityName="com.example.fallcompanion.MainActivity"  >
+
+        </activity>
+    </application>
+
+</manifest>
