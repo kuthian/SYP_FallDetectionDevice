@@ -1,10 +1,3 @@
-/*
- Note: The MPU9250 is an I2C sensor and uses the Arduino Wire library.
- Because the sensor is not 5V tolerant, we are using a 3.3 V 8 MHz Pro Mini or
- a 3.3 V Teensy 3.1. We have disabled the internal pull-ups used by the Wire
- library in the Wire.h/twi.c utility file. We are also using the 400 kHz fast
- I2C mode by setting the TWI_FREQ  to 400000L /twi.h utility file.
- */
 #ifndef _MPU9250_H_
 #define _MPU9250_H_
 
@@ -17,6 +10,7 @@
 // a different register map
 
 //Magnetometer Registers
+/*
 #define AK8963_ADDRESS   0x0C
 #define WHO_AM_I_AK8963  0x00 // should return 0x48
 #define INFO             0x01
@@ -34,12 +28,16 @@
 #define AK8963_ASAX      0x10  // Fuse ROM x-axis sensitivity adjustment value
 #define AK8963_ASAY      0x11  // Fuse ROM y-axis sensitivity adjustment value
 #define AK8963_ASAZ      0x12  // Fuse ROM z-axis sensitivity adjustment value
+*/
 
+//Gyro Registers
+/*
 #define SELF_TEST_X_GYRO 0x00
 #define SELF_TEST_Y_GYRO 0x01
 #define SELF_TEST_Z_GYRO 0x02
+*/
 
-/*#define X_FINE_GAIN      0x03 // [7:0] fine gain
+#define X_FINE_GAIN      0x03 // [7:0] fine gain
 #define Y_FINE_GAIN      0x04
 #define Z_FINE_GAIN      0x05
 #define XA_OFFSET_H      0x06 // User-defined trim values for accelerometer
@@ -47,7 +45,7 @@
 #define YA_OFFSET_H      0x08
 #define YA_OFFSET_L_TC   0x09
 #define ZA_OFFSET_H      0x0A
-#define ZA_OFFSET_L_TC   0x0B */
+#define ZA_OFFSET_L_TC   0x0B
 
 #define SELF_TEST_X_ACCEL 0x0D
 #define SELF_TEST_Y_ACCEL 0x0E
