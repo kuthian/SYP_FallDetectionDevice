@@ -1,82 +1,100 @@
-/* MPU9250 Basic Example Code
- by: Miguel Morales
- date: April 1, 2014
- license: Beerware - Use this code however you'd like. If you
- find it useful you can buy me a beer some time.
- Modified by Brent Wilkins July 19, 2016
-
- Demonstrate basic MPU-9250 functionality including parameterizing the register
- VDD ---------------------- 3.3V
- VDDI --------------------- 3.3V
- SDA ----------------------- A4
- SCL ----------------------- A5
- GND ---------------------- GND
- */
-
 #include "MPU9250.h"
+#include <SD.h>
+
+File myFile;
+File accel;
 
 #define AHRS true         // Set to false for basic data read
 #define SerialDebug true  // Set to true to get Serial output for debugging
 
-// Pin definitions
+MPU9250 myIMU;
+
 int intPin = 12;  // These can be changed, 2 and 3 are the Arduinos ext int pins
 int myLed  = 13;  // Set up pin 13 led for toggling
-
-MPU9250 myIMU;
 
 void setup()
 {
   Wire.begin();
-  // TWBR = 12;  // 400 kbit/sec I2C speed
   Serial.begin(38400);
 
-  // Set up the interrupt pin, its set as active high, push-pull
-  pinMode(intPin, INPUT);
-  digitalWrite(intPin, LOW);
-  pinMode(myLed, OUTPUT);
-  digitalWrite(myLed, HIGH);
+  //Set up the interrupt pin, its set as active high, push-pull
+//  pinMode(intPin, INPUT);
+//  digitalWrite(intPin, LOW);
+//  pinMode(myLed, OUTPUT);
+//  digitalWrite(myLed, HIGH);
 
   // Read the WHO_AM_I register, this is a good test of communication
   byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
   Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX);
   Serial.print(" I should be "); Serial.println(0x71, HEX);
 
-  if (c == 0x71) // WHO_AM_I should always be 0x68
+  if (c == 0xFF) // WHO_AM_I should always be 0x68
   {
     Serial.println("MPU9250 is online...");
-
-    // Start by performing self test and reporting values
-    myIMU.MPU9250SelfTest(myIMU.SelfTest);
-    Serial.print("x-axis self test: acceleration trim within : ");
-    Serial.print(myIMU.SelfTest[0],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: acceleration trim within : ");
-    Serial.print(myIMU.SelfTest[1],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: acceleration trim within : ");
+//    myIMU.MPU9250SelfTest(myIMU.SelfTest);
+//    
+//    Serial.print("x-axis self test: acceleration trim within : ");
+//    Serial.print(myIMU.SelfTest[0],1); Serial.println("% of factory value");
+//    Serial.print("y-axis self test: acceleration trim within : ");
+//    Serial.print(myIMU.SelfTest[1],1); Serial.println("% of factory value");
+//    Serial.print("z-axis self test: acceleration trim within : ");
+//    Serial.print(myIMU.SelfTest[2],1); Serial.println("% of factory value");
     
+    myIMU.initMPU9250();
+    Serial.println("MPU9250 initialized for active data mode....");
+
     // Calibrate gyro and accelerometers, load biases in bias registers
     myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias);
 
     myIMU.initMPU9250();
-    // Initialize device for active mode read of acclerometer, gyroscope, and
-    // temperature
+    // Initialize device for active mode read of acclerometer, gyroscope, and temperature
     Serial.println("MPU9250 initialized for active data mode....");
-
-    // Read the WHO_AM_I register of the magnetometer, this is a good test of
-    // communication
-    byte d = myIMU.readByte(AK8963_ADDRESS, WHO_AM_I_AK8963);
-    Serial.print("AK8963 "); Serial.print("I AM "); Serial.print(d, HEX);
-    Serial.print(" I should be "); Serial.println(0x48, HEX);
-  } // if (c == 0x71)
+  } 
+  
+  // if (c == 0x71)
   else
   {
     Serial.print("Could not connect to MPU9250: 0x");
     Serial.println(c, HEX);
     while(1) ; // Loop forever if communication doesn't happen
   }
+
+  Serial.print("Initializing SD card...");
+  pinMode(10, OUTPUT);
+ 
+  if (!SD.begin(10)) 
+  {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
+
+  // open the file. note that only one file can be open at a time,
+  // so you have to close this one before opening another.
+  myFile = SD.open("test.txt", FILE_WRITE);
+  
+  // if the file opened okay, write to it:
+  if (myFile) 
+  {
+    Serial.print("Writing to test.txt...");
+    myFile.println("testing 1, 2, 3.");
+    // close the file:
+    myFile.close();
+    Serial.println("done.");
+  } 
+
+        else 
+    {
+      // if the file didn't open, print an error:
+      Serial.println("error opening test.txt");
+    }
+  
 }
 
 void loop()
 {
+  for (int i=0; i<10; i++)
+  {
   // If intPin goes high, all data registers have new data
   // On interrupt, check if data ready interrupt
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01)
@@ -91,22 +109,13 @@ void loop()
     myIMU.az = (float)myIMU.accelCount[2]*myIMU.aRes; // - accelBias[2];
   } // if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01)
 
-  // Must be called before updating quaternions!
-  myIMU.updateTime();
-
-  // Sensors x (y)-axis of the accelerometer is aligned with the y (x)-axis of
-  // the magnetometer; the magnetometer z-axis (+ down) is opposite to z-axis
-  // (+ up) of accelerometer and gyro! We have to make some allowance for this
-  // orientationmismatch in feeding the output to the quaternion filter. For the
-  // MPU-9250, we have chosen a magnetic rotation that keeps the sensor forward
-  // along the x-axis just like in the LSM9DS0 sensor. This rotation can be
-  // modified to allow any convenient orientation convention. This is ok by
-  // aircraft orientation standards! Pass gyro rate as rad/s
-//  MadgwickQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f,  my,  mx, mz);
   
-  MahonyQuaternionUpdate(myIMU.ax, myIMU.ay, myIMU.az, myIMU.gx*DEG_TO_RAD,
-                         myIMU.gy*DEG_TO_RAD, myIMU.gz*DEG_TO_RAD, myIMU.my,
-                         myIMU.mx, myIMU.mz, myIMU.deltat);
+  accel = SD.open("Acceltest.txt", FILE_WRITE);
+  accel.println(myIMU.ax); // - accelBias[0];
+  accel.println(myIMU.ay); // - accelBias[1];)
+  accel.println(myIMU.az); // - accelBias[2];
+  
+
 
   if (!AHRS)
   {
@@ -123,6 +132,8 @@ void loop()
         Serial.print("Z-acceleration: "); Serial.print(1000*myIMU.az);
         Serial.println(" mg ");
       }
+
+      
 
       myIMU.count = millis();
       digitalWrite(myLed, !digitalRead(myLed));  // toggle led
@@ -164,6 +175,8 @@ void loop()
       myIMU.count = millis();
       myIMU.sumCount = 0;
       myIMU.sum = 0;
-    } // if (myIMU.delt_t > 500)
-  } // if (AHRS)
+      } // if (myIMU.delt_t > 500)
+    } // if (AHRS)
+  }
+  accel.close();
 }

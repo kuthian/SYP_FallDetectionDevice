@@ -1,7 +1,11 @@
+#include <SPI.h>
+#include <Wire.h>
+#include <MPU9250.h>
 
-#define MPU9250_ADDRESS 	0x68
+
+#define MPU9250_ADDRESS 	  0x68
 #define ACC_FULL_SCALE_4_G 	0x08
-#define WHO_AM_I_MPU9250 	0x75
+#define WHO_AM_I_MPU9250 	  0x75
 #define SELF_TEST_X_ACCEL 	0x0D
 #define SELF_TEST_y_ACCEL 	0x0E
 #define SELF_TEST_Z_ACCEL 	0x0F
@@ -35,32 +39,29 @@ void setup()
 {
 	Wire.begin();
 	Serial.begin(38400);
-	 
-	byte c = I2Cread(MPU9250_ADDRESS, WHO_AM_I_MPU9250);
+  uint8_t* Astatus[1]; 
+  uint8_t bitmask1 = 231;
+  uint8_t bitmask2 = 8;
 
-	if (c == 0x71) // WHO_AM_I should always be 0x68
-	{
-		Serial.println("MPU9250 is online...");
-		
-		I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_4_G);
-	}
-	else
-	{
-		Serial.print("Could not connect to MPU9250: 0x");
-		Serial.println(c, HEX);
-		while(1) ; // Loop forever if communication doesn't happen
-	}
+
+  I2CwriteByte(MPU9250_ADDRESS,ACCEL_CONFIG,0x8);
+  I2Cread(MPU9250_ADDRESS,ACCEL_CONFIG,2,Astatus[1]);
+  Serial.print(Astatus[1]);
+  Serial.println("");
+  Astatus[1] = (Astatus[1] & (~bitmask1));
+  Astatus[2] = (Astatus[1] | (bitmask2));
+  Serial.println("");
+  I2CwriteByte(MPU9250_ADDRESS,ACCEL_CONFIG,Astatus[1]);
+  Serial.println("");
 }
-
+   
 void loop()
 {
 	// Display data counter
-	Serial.print (cpt++,DEC);
-	Serial.print ("\t");
-
+	//Serial.print ("\t");
+/*
 	uint8_t Buf[14];
 	I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
-  
   
 	// Accelerometer
 	int16_t ax=-(Buf[0]<<8 | Buf[1]);
@@ -77,5 +78,7 @@ void loop()
 	
 
 	Serial.println("");
-	
+*/ 	
 }
+
+
