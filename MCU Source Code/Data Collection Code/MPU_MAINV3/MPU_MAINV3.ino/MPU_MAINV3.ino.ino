@@ -11,6 +11,7 @@
 #define    ACC_FULL_SCALE_8_G        0x10
 #define    ACC_FULL_SCALE_16_G       0x18
 
+toggle0 = 0; //use this variable to avoid using PCINTs
 
 File myFile;
 File accel;
@@ -47,6 +48,18 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
 // Initializations
 void setup()
 {
+  //Configuring pins for interrupts/timers
+
+  //Configuring control registers
+  //Clear
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1 = 0;
+  OCR1A = 31250; //8MHz/256 prescaler
+  TCCR1B |= (1 << WGM12); //CTC mode
+  TCCR1B |= (1 << CS12); //256 prescaler
+  TIMSKI1 |= (1 << OCIE1A); //enable timer compare interrupt
+  
   // Arduino initializations
   Wire.begin();
   Serial.begin(115200);
@@ -102,7 +115,7 @@ int cpt=0;
 void loop()
 {
   int i;
-  while(cpt<10000) {
+  while(cpt<1000) {
     i = 1;
     myFile = SD.open("accel.txt", O_CREAT | O_WRITE);
     while(i<5) {   
@@ -127,6 +140,7 @@ void loop()
         Serial.print(buffer);
         Serial.print("\n");
         myFile.println (buffer);
+        Serial.println("cpt");
         cpt++;
       } 
     
@@ -135,7 +149,7 @@ void loop()
           // if the file didn't open, print an error:
           //Serial.println("error opening accel.txt");
       }
-      //Serial.println(i);
+      Serial.println(i);
       i++;
     }
     
@@ -145,5 +159,10 @@ void loop()
   }
  Serial.print("all done");
  while(1){}    
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+ //write something to SD card to signify one second has past
 }
 
