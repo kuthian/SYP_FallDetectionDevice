@@ -3,7 +3,6 @@
 #include <SPI.h>
 #include <Wire.h>
 
-
 #define    MPU9250_ADDRESS            0x68
 #define    MAG_ADDRESS                0x0C
 
@@ -51,18 +50,21 @@ void setup()
   // Arduino initializations
   Wire.begin();
   Serial.begin(115200);
+  int Status = 0;
 
   // Configure accelerometers range
-  I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
+  I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_4_G);
   // Set by pass mode for the magnetometers
   I2CwriteByte(MPU9250_ADDRESS,0x37,0x02);
 
   Serial.print("Initializing SD card...");
+  myFile.close();
   pinMode(10, OUTPUT);
  
   if (!SD.begin(10)) 
   {
     Serial.println("initialization failed!");
+    Status = 0;
     return;
   }
   Serial.println("initialization done.");
@@ -79,85 +81,69 @@ void setup()
     // close the file:
     myFile.close();
     Serial.println("done.");
+    Status = 1;
+    
   } 
 
         else 
     {
       // if the file didn't open, print an error:
       Serial.println("error opening test.txt");
+      Status = 0;
     }
   
 }
 
 
-long int cpt=0;
+int cpt=0;
 
 
 // Main loop, read and display data
 void loop()
 {
-  
-  // _______________
-  // ::: Counter :::
-  
-  // Display data counter
-  Serial.print (cpt++,DEC);
-  Serial.print ("\t");
-  
- 
- 
-  // ____________________________________
-  // :::  accelerometer and gyroscope ::: 
-
-  // Read accelerometer and gyroscope
-  uint8_t Buf[14];
-  I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
-  
-  
-  // Create 16 bits values from 8 bits data
-  
-  // Accelerometer
-  int16_t ax=-(Buf[0]<<8 | Buf[1]);
-  int16_t ay=-(Buf[2]<<8 | Buf[3]);
-  int16_t az=Buf[4]<<8 | Buf[5];
-
-  // Display values
- 
-  // Accelerometer
-  Serial.print (ax,DEC); 
-  Serial.print ("\t");
-  Serial.print (ay,DEC);
-  Serial.print ("\t");
-  Serial.print (az,DEC);  
-  Serial.print ("\t");
-  Serial.print("\n");
-  
-  myFile = SD.open("accel.txt", FILE_WRITE);
-  if (myFile) 
-  {
-    Serial.print("Writing to accel.txt...");
-    Serial.print("\n");
-    myFile.print (cpt++,DEC);
-    myFile.print ("\t");
-    myFile.print(ax,DEC);
-    myFile.print ("\t"); 
-    myFile.print(ay,DEC);
-    myFile.print ("\t");
-    myFile.print(az,DEC);
-    myFile.print ("\n");  
-
-    myFile.close();
+  int i;
+  while(cpt<10000) {
+    i = 1;
+    myFile = SD.open("accel.txt", O_CREAT | O_WRITE);
+    while(i<5) {   
+      uint8_t Buf[14];
+      I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
+      
+      // Create 16 bits values from 8 bits data
+      
+      // Accelerometer
+      int16_t ax=-(Buf[0]<<8 | Buf[1]);
+      int16_t ay=-(Buf[2]<<8 | Buf[3]);
+      int16_t az=Buf[4]<<8 | Buf[5];
     
-    Serial.println("done.");
-    Serial.print("\n");
-  } 
-
-  else 
-  {
-      // if the file didn't open, print an error:
-      Serial.println("error opening accel.txt");
+    
+    
+      char buffer[30];
+      int n;
+      n = sprintf (buffer, "%d: %d, %d, %d",cpt,ax,ay,az); 
+    
+      if (myFile) 
+      {
+        Serial.print(buffer);
+        Serial.print("\n");
+        myFile.println (buffer);
+        cpt++;
+      } 
+    
+      else 
+      {
+          // if the file didn't open, print an error:
+          //Serial.println("error opening accel.txt");
+      }
+      //Serial.println(i);
+      i++;
+    }
+    
+    myFile.close();
+    Serial.println("flushing");
+    //delay(10);
   }
-  
-  delay(1000);    
+ Serial.print("all done");
+ while(1){}    
 }
 
