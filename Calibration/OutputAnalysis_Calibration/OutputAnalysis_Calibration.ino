@@ -1,4 +1,4 @@
-// I2C device class (I2Cdev) demonstration Arduino sketch for MPU6050 class 
+// I2C device class (I2Cdev) demonstration Arduino sketch for MPU9250 class 
 // using DMP (MotionApps v2.0)
 // 6/21/2012 by Jeff Rowberg <jeff@rowberg.net>
  
@@ -26,11 +26,11 @@ THE SOFTWARE.
 ===============================================
 */
  
-// I2Cdev and MPU9050 must be installed as libraries, or else the .cpp/.h files
+// I2Cdev and MPU9250 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
 #include "I2Cdev.h"
  
-#include "MPU9050_6Axis_MotionApps20.h"
+#include "MPU9250_6Axis_MotionApps20.h"
  
 // Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
 // is used in I2Cdev.h
@@ -42,8 +42,8 @@ THE SOFTWARE.
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for SparkFun breakout and InvenSense evaluation board)
 // AD0 high = 0x69
-MPU6050 mpu;
-//MPU6050 mpu(0x69); // <-- use for AD0 high
+MPU9250 mpu;
+//MPU9250 mpu(0x69); // <-- use for AD0 high
  
 /* =========================================================================
    NOTE: In addition to connection 3.3v, GND, SDA, and SCL, this sketch
@@ -129,7 +129,7 @@ void setup() {
  
     // verify connection
     Serial.println(F("Testing device connections..."));
-    Serial.println(F("MPU6050 connection "));
+    Serial.println(F("MPU9250 connection "));
     Serial.print(mpu.testConnection() ? F("successful") : F("failed"));
  
     // wait for ready

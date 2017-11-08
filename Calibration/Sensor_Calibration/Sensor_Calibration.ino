@@ -1,10 +1,10 @@
-// Arduino sketch that returns calibration offsets for MPU6050 
+// Arduino sketch that returns calibration offsets for MPU9250 
 //   Version 1.1  (31th January 2014)
 // Done by Luis Ródenas <luisrodenaslorda@gmail.com>
 // Based on the I2Cdev library and previous work by Jeff Rowberg <jeff@rowberg.net>
 // Updates (of the library) should (hopefully) always be available at https://github.com/jrowberg/i2cdevlib
  
-// These offsets were meant to calibrate MPU6050's internal DMP, but can be also useful for reading sensors. 
+// These offsets were meant to calibrate MPU9250's internal DMP, but can be also useful for reading sensors. 
 // The effect of temperature has not been taken into account so I can't promise that it will work if you 
 // calibrate indoors and then use it outdoors. Best is to calibrate and use at the same room temperature.
  
@@ -32,9 +32,9 @@
  =========================================================
  */
  
-// I2Cdev and MPU9050 must be installed as libraries
+// I2Cdev and MPU9250 must be installed as libraries
 #include "I2Cdev.h"
-#include "MPU9050.h"
+#include "MPU9250.h"
 #include "Wire.h"
  
 ///////////////////////////////////   CONFIGURATION   /////////////////////////////
@@ -47,8 +47,8 @@ int giro_deadzone=1;     //Giro error allowed, make it lower to get more precisi
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for InvenSense evaluation board)
 // AD0 high = 0x69
-//MPU9050 accelgyro;
-MPU9050 accelgyro(0x68); // <-- use for AD0 high
+//MPU9250 accelgyro;
+MPU9250 accelgyro(0x68); // <-- use for AD0 high
  
 int16_t ax, ay, az,gx, gy, gz;
  
@@ -77,12 +77,12 @@ void setup() {
   while (Serial.available() && Serial.read()); // empty buffer again
  
   // start message
-  Serial.println("\nMPU6050 Calibration Sketch");
+  Serial.println("\nMPU9250 Calibration Sketch");
   delay(2000);
-  Serial.println("\nYour MPU9050 should be placed in horizontal position, with package letters facing up. \nDon't touch it until you see a finish message.\n");
+  Serial.println("\nYour MPU9250 should be placed in horizontal position, with package letters facing up. \nDon't touch it until you see a finish message.\n");
   delay(3000);
   // verify connection
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  Serial.println(accelgyro.testConnection() ? "MPU9250 connection successful" : "MPU9250 connection failed");
   delay(1000);
   // reset offsets
   accelgyro.setXAccelOffset(0);
