@@ -11,8 +11,6 @@
 #define    ACC_FULL_SCALE_8_G        0x10
 #define    ACC_FULL_SCALE_16_G       0x18
 
-toggle0 = 0; //use this variable to avoid using PCINTs
-
 File myFile;
 File accel;
 
@@ -51,14 +49,14 @@ void setup()
   //Configuring pins for interrupts/timers
 
   //Configuring control registers
-  //Clear
+  //Clear first
   TCCR1A = 0;
   TCCR1B = 0;
   TCNT1 = 0;
   OCR1A = 31250; //8MHz/256 prescaler
   TCCR1B |= (1 << WGM12); //CTC mode
   TCCR1B |= (1 << CS12); //256 prescaler
-  TIMSKI1 |= (1 << OCIE1A); //enable timer compare interrupt
+  TIMSK1 |= (1 << OCIE1A); //enable timer compare interrupt
   
   // Arduino initializations
   Wire.begin();
@@ -164,5 +162,8 @@ void loop()
 ISR(TIMER1_COMPA_vect)
 {
  //write something to SD card to signify one second has past
+ Serial.println("In ISR.");
+ myFile.println("One second has past.");
+ 
 }
 
