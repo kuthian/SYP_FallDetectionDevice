@@ -55,6 +55,11 @@ public class MainActivity extends AppCompatActivity {
     public String SavedContactNumber3;
     public String SavedContactNumber4;
 
+    private String SavedSeekBarValue;
+    private String SavedOnOrOFf;
+    private String CountdownEventTime;
+    private String DefaultCountdownEventTime = "30";
+
     public Ringtone defaultRingtone;
 
     Vibrator smsVib;
@@ -81,6 +86,11 @@ public class MainActivity extends AppCompatActivity {
         SavedContactNumber3 = "com.example.app.savedcontactnumber3";
         SavedContactNumber4 = "com.example.app.savedcontactnumber4";
 
+        SavedSeekBarValue = "com.example.app.savedseekbarvalue";
+        SavedOnOrOFf = "com.example.app.savedonoroff";
+
+        CountdownEventTime = prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime);
+
         TimerView = (TextView) findViewById(R.id.TimerView);
         EventButton = (Button) findViewById(R.id.EventButton);
         CancelEventButton = (Button) findViewById(R.id.CancelButton);
@@ -101,13 +111,15 @@ public class MainActivity extends AppCompatActivity {
             CancelEventButton.setEnabled(true);
             CancelEventButton.setClickable(true);
 
+            CountdownEventTime = prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime);
             try
             {
                 GetDate();
                 GetPhoneNumbers();
                 CreateNotification();
-                Vibrate(10000);
-                StartTimer();
+
+                Vibrate(Integer.parseInt(CountdownEventTime)+ 1);
+                StartTimer(Integer.parseInt(CountdownEventTime)+ 1);
             }
             catch(Exception e)
             {
@@ -289,9 +301,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void Vibrate(int VibrateDuration)
     {
-        Log.d(TAG, "Vibrate: Begin");
+        Log.d(TAG, "Vibrate: Begin, Vibrating for " + VibrateDuration + " Seconds.");
         smsVib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        smsVib.vibrate(VibrateDuration);
+        smsVib.vibrate(VibrateDuration*1000);
         Log.d(TAG, "Vibrate: End");
     }
 
@@ -304,11 +316,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-    public void StartTimer()
+    public void StartTimer(int TimerTime)
     {
         Log.d(TAG, "StartTimer: Begin");
 
-        Timer = new CountDownTimer(10000, 1000) {
+        Timer = new CountDownTimer(TimerTime*1000, 1000) {
 
             public void onTick(long millisUntilFinished) {
                 TimerView.setText("Event Timer: " + millisUntilFinished / 1000);

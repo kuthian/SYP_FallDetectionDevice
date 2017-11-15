@@ -25,13 +25,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Switch
-        android:id="@+id/switch1"
-        android:layout_width="100dp"
+        android:id="@+id/OnOrOffSwitch"
+        android:layout_width="wrap_content"
         android:layout_height="24dp"
         android:layout_marginBottom="32dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:checked="false"
         android:text="Off/On"
         android:textOff="Disabled"
         android:textOn="Enabled"
@@ -49,6 +48,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="100dp"
         android:backgroundTint="@color/HealthyBlue"
+        android:onClick="SaveContactValuesToPrefs"
         android:text="Save"
         android:textColor="@color/Ivory"
         app:layout_constraintEnd_toEndOf="@+id/CountdownSeekBar"
