@@ -8,12 +8,12 @@
     tools:context="com.example.fallcompanion.MainActivity">
 
     <Button
-        android:id="@+id/smsButton"
+        android:id="@+id/EventButton"
         android:background="@color/White"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Send SMS"
-        android:onClick="SendSMS"
+        android:onClick="TriggerEventCountdown"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="50dp"
         android:layout_marginLeft="150dp"
@@ -29,11 +29,11 @@
         android:layout_marginLeft="0dp"
         android:layout_marginTop="110dp"
         android:background="@color/White"
-        android:onClick="open_bluetooth"
+        android:onClick="OpenBluetooth"
         android:text="Bluetooth"
         android:textAlignment="center"
         app:layout_constraintLeft_toLeftOf="@+id/fallDataButton"
-        app:layout_constraintTop_toBottomOf="@+id/smsButton" />
+        app:layout_constraintTop_toBottomOf="@+id/EventButton" />
 
     <Button
         android:id="@+id/emergencyContactsButton"
@@ -43,7 +43,7 @@
         android:layout_marginRight="0dp"
         android:layout_marginTop="0dp"
         android:background="@color/White"
-        android:onClick="open_emergency_contacts"
+        android:onClick="OpenEmergencyContacts"
         android:text="Emergency\nContacts"
         android:textAlignment="center"
         app:layout_constraintHorizontal_bias="0.0"
@@ -58,13 +58,13 @@
         android:layout_marginLeft="100dp"
         android:layout_marginTop="0dp"
         android:background="@color/White"
-        android:onClick="open_fall_data"
+        android:onClick="OpenFallData"
         android:text="Fall Data"
         android:textAlignment="center"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bluetoothButton"
         android:layout_marginRight="50dp"
-        app:layout_constraintRight_toRightOf="@+id/smsButton" />
+        app:layout_constraintRight_toRightOf="@+id/EventButton" />
 
     <Button
         android:id="@+id/alertSettingsButton"
@@ -73,10 +73,34 @@
         android:layout_marginLeft="0dp"
         android:layout_marginTop="0dp"
         android:background="@color/White"
-        android:onClick="open_alert_settings"
+        android:onClick="OpenAlertSettings"
         android:text="Alert\nSettings"
         android:textAlignment="center"
         app:layout_constraintLeft_toRightOf="@+id/fallDataButton"
         app:layout_constraintTop_toBottomOf="@+id/emergencyContactsButton" />
+
+    <Button
+        android:id="@+id/CancelButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="110dp"
+        android:background="@color/White"
+        android:text="Cancel"
+        android:onClick="Cancel"
+        app:layout_constraintEnd_toEndOf="@+id/EventButton"
+        app:layout_constraintStart_toStartOf="@+id/EventButton"
+        app:layout_constraintTop_toBottomOf="@+id/alertSettingsButton" />
+
+    <TextView
+        android:id="@+id/TimerView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="48dp"
+        android:textColor="@color/Ivory"
+        app:layout_constraintEnd_toEndOf="@+id/CancelButton"
+        app:layout_constraintStart_toStartOf="@+id/CancelButton"
+        app:layout_constraintTop_toBottomOf="@+id/CancelButton" />
 
 </android.support.constraint.ConstraintLayout>

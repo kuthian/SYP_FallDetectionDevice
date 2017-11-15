@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
 
     <application
         android:allowBackup="true"
@@ -23,6 +26,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.example.fallcompanion.Bluetooth"
+            android:screenOrientation="portrait"
             android:parentActivityName="com.example.fallcompanion.MainActivity" />
         <activity android:name="com.example.fallcompanion.EmergencyContacts"
             android:parentActivityName="com.example.fallcompanion.MainActivity" />
