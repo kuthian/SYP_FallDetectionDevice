@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  Hardware setup:
  MPU9250 Breakout --------- Arduino
@@ -15,7 +14,10 @@
  We are also using the 400 kHz fast I2C mode by setting the TWI_FREQ  to 400000L /twi.h utility file.
  
  */
-#include "Wire.h"   
+#include "Wire.h"
+#include <SoftwareSerial.h>
+
+SoftwareSerial BT(5, 6);
 //include "i2c_t3.h"
 //#include <SPI.h>
 
@@ -216,8 +218,8 @@ int myLed = 13;
 int16_t accelCount[3];  // Stores the 16-bit signed accelerometer sensor output
 int16_t gyroCount[3];   // Stores the 16-bit signed gyro sensor output
 int16_t magCount[3];    // Stores the 16-bit signed magnetometer sensor output
-float magCalibration[3] = {0, 0, 0}, magbias[3] = {0, 0, 0};  // Factory mag calibration and mag bias
-float gyroBias[3] = {0, 0, 0}, accelBias[3] = {0, 0, 0};      // Bias corrections for gyro and accelerometer
+float 	magCalibration[3] = {0, 0, 0}, magbias[3] = {0, 0, 0};  // Factory mag calibration and mag bias
+float 	gyroBias[3] = {0, 0, 0}, accelBias[3] = {0, 0, 0};      // Bias corrections for gyro and accelerometer
 int16_t tempCount;      // temperature raw count output
 float   temperature;    // Stores the real internal chip temperature in degrees Celsius
 float   SelfTest[6];    // holds results of gyro and accelerometer self test
@@ -252,8 +254,6 @@ float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor dat
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
 
-#include "quaternionFilter.h"
-
 typedef union {
  float floatingPoint[4];
  byte binary[16];
@@ -261,249 +261,111 @@ typedef union {
 
 void setup()
 {
-  Wire.begin();
-  TWBR = 12;  // 400 kbit/sec I2C speed
-  // Setup for Master mode, pins 18/19, external pullups, 400kHz
-  //Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_100);
-  //Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_400);
-  //Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, I2C_RATE_2000);
-  Serial.begin(57600);
-  
-  // Set up the interrupt pin, its set as active high, push-pull
-  pinMode(intPin, INPUT);
-  digitalWrite(intPin, LOW);
-  pinMode(adoPin, OUTPUT);
-  digitalWrite(adoPin, HIGH);
-  pinMode(myLed, OUTPUT);
-  digitalWrite(myLed, HIGH);
+  // set digital pin to control as an output
+  pinMode(9, OUTPUT);
+  // set the data rate for the SoftwareSerial port
+  BT.begin(9600);
+  // Send test message to other device
+  BT.println("Hello from Arduino");
 
-  delay(1000);
+   
+	Wire.begin();
+	TWBR = 12;  // 400 kbit/sec I2C speed
+	Serial.begin(9600);
 
-  // Read the WHO_AM_I register, this is a good test of communication
-  byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
-  Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX); Serial.print(" I should be "); Serial.println(0x71, HEX);
-  delay(500); 
+	// Set up the interrupt pin, its set as active high, push-pull
+	pinMode(intPin, INPUT);
+	digitalWrite(intPin, LOW);
+	pinMode(adoPin, OUTPUT);
+	digitalWrite(adoPin, HIGH);
+	pinMode(myLed, OUTPUT);
+	digitalWrite(myLed, HIGH);
 
-  if (c == 0x71) // WHO_AM_I should always be 0x68
-  {  
-    Serial.println("MPU9250 is online...");
-    
-    MPU9250SelfTest(SelfTest); // Start by performing self test and reporting values
-    Serial.print("x-axis self test: acceleration trim within : "); Serial.print(SelfTest[0],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: acceleration trim within : "); Serial.print(SelfTest[1],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: acceleration trim within : "); Serial.print(SelfTest[2],1); Serial.println("% of factory value");
-    Serial.print("x-axis self test: gyration trim within : "); Serial.print(SelfTest[3],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: gyration trim within : "); Serial.print(SelfTest[4],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: gyration trim within : "); Serial.print(SelfTest[5],1); Serial.println("% of factory value");
-    delay(500);
-    
-  calibrateMPU9250(gyroBias, accelBias); // Calibrate gyro and accelerometers, load biases in bias registers
+	delay(1000);
 
-  delay(100); 
-  
-  initMPU9250(); 
-  Serial.println("MPU9250 initialized for active data mode...."); // Initialize device for active mode read of acclerometer, gyroscope, and temperature
-  
-  // Read the WHO_AM_I register of the magnetometer, this is a good test of communication
-  byte d = readByte(AK8963_ADDRESS, AK8963_WHO_AM_I);  // Read WHO_AM_I register for AK8963
-  Serial.print("AK8963 "); Serial.print("I AM "); Serial.print(d, HEX); Serial.print(" I should be "); Serial.println(0x48, HEX);
-  delay(100); 
-  
-  // Get magnetometer calibration from AK8963 ROM
-  initAK8963(magCalibration); Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
-  
-  //if(SerialDebug)
-  {
-    Serial.println("Calibration values: ");
-    Serial.print("X-Axis sensitivity adjustment value "); Serial.println(magCalibration[0], 2);
-    Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
-    Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
-  }
-  
-  delay(100);  
-  }
-  else
-  {
-    Serial.print("Could not connect to MPU9250: 0x");
-    Serial.println(c, HEX);
-    while(1) ; // Loop forever if communication doesn't happen
-  }
+	// Read the WHO_AM_I register, this is a good test of communication
+	byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
+	Serial.print("MPU9250 "); Serial.print("I AM "); Serial.print(c, HEX); Serial.print(" I should be "); Serial.println(0x71, HEX);
+	delay(500); 
 
-  
-  //magcalMPU9250(magbias,magCalibration);
-  
-  Serial.println("After Magnetometer Calibration: ");
-  Serial.print("X-Axis sensitivity adjustment value "); Serial.println(magCalibration[0], 2);
-  Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
-  Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
-  Serial.print("X-Axis mag bias "); Serial.println(magbias[0], 2);
-  Serial.print("Y-Axis mag bias "); Serial.println(magbias[1], 2);
-  Serial.print("Z-Axis mag bias "); Serial.println(magbias[2], 2);
-  
+	if (c == 0x71) // WHO_AM_I should always be 0x68
+	{  
+		Serial.println("MPU9250 is online...");
+
+		MPU9250SelfTest(SelfTest); // Start by performing self test and reporting values
+		Serial.print("x-axis self test: acceleration trim within : "); Serial.print(SelfTest[0],1); Serial.println("% of factory value");
+		Serial.print("y-axis self test: acceleration trim within : "); Serial.print(SelfTest[1],1); Serial.println("% of factory value");
+		Serial.print("z-axis self test: acceleration trim within : "); Serial.print(SelfTest[2],1); Serial.println("% of factory value");
+		delay(500);
+
+		calibrateMPU9250(gyroBias, accelBias); // Calibrate gyro and accelerometers, load biases in bias registers
+
+		delay(100); 
+
+		initMPU9250(); 
+		Serial.println("MPU9250 initialized for active data mode...."); // Initialize device for active mode read of acclerometer, gyroscope, and temperature
+
+
+		// Get magnetometer calibration from AK8963 ROM
+		initAK8963(magCalibration); Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer 
+	}
+	else
+	{
+		Serial.print("Could not connect to MPU9250: 0x");
+		Serial.println(c, HEX);
+		while(1) ; // Loop forever if communication doesn't happen
+	}
 }
 
 void loop()
 { 
-  
-  // If intPin goes high, all data registers have new data
-  if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {  // On interrupt, check if data ready interrupt
-    readAccelData(accelCount);  // Read the x/y/z adc values
-    getAres();
-    
-    // Now we'll calculate the accleration value into actual g's
-    ax = (float)accelCount[0]*aRes; // - accelBias[0];  // get actual g value, this depends on scale being set
-    ay = (float)accelCount[1]*aRes; // - accelBias[1];   
-    az = (float)accelCount[2]*aRes; // - accelBias[2];  
-  }
-  
-  Now = micros();
-  deltat = ((Now - lastUpdate)/1000000.0f); // set integration time by time elapsed since last filter update
-  lastUpdate = Now;
+	// If intPin goes high, all data registers have new data
+	if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) // On interrupt, check if data ready interrupt
+	{  
+		readAccelData(accelCount);  // Read the x/y/z adc values
+		getAres();
 
-  sum += deltat; // sum for averaging filter update rate
-  sumCount++;
-  
-  // Sensors x (y)-axis of the accelerometer is aligned with the y (x)-axis of the magnetometer;
-  // the magnetometer z-axis (+ down) is opposite to z-axis (+ up) of accelerometer and gyro!
-  // We have to make some allowance for this orientationmismatch in feeding the output to the quaternion filter.
-  // For the MPU-9250, we have chosen a magnetic rotation that keeps the sensor forward along the x-axis just like
-  // in the LSM9DS0 sensor. This rotation can be modified to allow any convenient orientation convention.
-  // This is ok by aircraft orientation standards!  
-  // Pass gyro rate as rad/s
-  MadgwickQuaternionUpdate(ax, ay, az, gx*PI/180.0f, gy*PI/180.0f, gz*PI/180.0f,  my,  mx, mz);
+		// Now we'll calculate the accleration value into actual g's
+		ax = (float)accelCount[0]*aRes - accelBias[0];  // get actual g value, this depends on scale being set
+		ay = (float)accelCount[1]*aRes - accelBias[1];   
+		az = (float)accelCount[2]*aRes - accelBias[2];  
+	}
+  double now = micros()/1000;
+//	char buffer[30];
+//	int n;
+//	n = sprintf (buffer, "%.10f, %.10f, %.10f, %.10f",now,ax,ay,az);
 
-    if (!AHRS)
-    {
-      delt_t = millis() - count;
-      if(delt_t > 500)
-      {
-        if(SerialDebug)
-        {
-          // Print acceleration values in milligs!
-          Serial.print("X-acceleration: "); Serial.print(1000*ax); Serial.print(" mg ");
-          Serial.print("Y-acceleration: "); Serial.print(1000*ay); Serial.print(" mg ");
-          Serial.print("Z-acceleration: "); Serial.print(1000*az); Serial.println(" mg ");
+	//binaryFloat acb = (cpt);
+	//binaryFloat axb = (ax);
+	//binaryFloat ayb = (ay);
+	//binaryFloat azb = (az);
 
-        }
-         
-        count = millis();
-      }
-    }
-    else
-    {
-      // Serial print and/or display at 0.5 s rate independent of data rates
-      delt_t = millis() - count;
+	//binaryFloat hi;
 
-      if (delt_t > 10)
-      {
-        //char buffer[30];
-        //int n;
-        //n = sprintf (buffer, "%.10f, %.10f, %.10f",ax,ay,az);
+	//hi.floatingPoint[0] = ax; // w
+	//hi.floatingPoint[1] = ay; // x
+	//hi.floatingPoint[2] = az; // y
+	//hi.floatingPoint[3] = az; // w
 
-        //binaryFloat acb = (cpt);
-        //binaryFloat axb = (ax);
-        //binaryFloat ayb = (ay);
-        //binaryFloat azb = (az);
-       
-        binaryFloat hi;
+	//Serial.write(hi.binary,12);
 
-        hi.floatingPoint[0] = ax; // w
-        hi.floatingPoint[1] = ay; // x
-        hi.floatingPoint[2] = az; // y
-        //hi.floatingPoint[3] = az; // w
-
-        Serial.write(hi.binary,12);
-        
-//        Serial.print(cpt);
-//        Serial.print("\t");
-//        Serial.print(ax*1000);
-//        Serial.print("\t");
-//        Serial.print(ay*1000);
-//        Serial.print("\t");
-//        Serial.print(az*1000);
-//        Serial.print("\n");
-        //Serial.println(buffer);
-        
-
-        count = millis(); 
-        sumCount = 0;
-        sum = 0;
-        cpt++;            
-      }
-
-      /*
-      if (delt_t > 500)
-      {
-    
-        if(SerialDebug)
-        {
-          Serial.print("ax = "); Serial.print((int)1000*ax);  
-          Serial.print(" ay = "); Serial.print((int)1000*ay); 
-          Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(" mg");
-          Serial.print("gx = "); Serial.print( gx, 2); 
-          Serial.print(" gy = "); Serial.print( gy, 2); 
-          Serial.print(" gz = "); Serial.print( gz, 2); Serial.println(" deg/s");
-          Serial.print("mx = "); Serial.print( (int)mx ); 
-          Serial.print(" my = "); Serial.print( (int)my ); 
-          Serial.print(" mz = "); Serial.print( (int)mz ); Serial.println(" mG");
-          
-          Serial.print("q0 = "); Serial.print(q[0]);
-          Serial.print(" qx = "); Serial.print(q[1]); 
-          Serial.print(" qy = "); Serial.print(q[2]); 
-          Serial.print(" qz = "); Serial.println(q[3]); 
-        }
-       
-      // Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
-      // In this coordinate system, the positive z-axis is down toward Earth. 
-      // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
-      // Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
-      // Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
-      // These arise from the definition of the homogeneous rotation matrix constructed from quaternions.
-      // Tait-Bryan angles as well as Euler angles are non-commutative; that is, the get the correct orientation the rotations must be
-      // applied in the correct order which for this configuration is yaw, pitch, and then roll.
-      // For more see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles which has additional links.
-        yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);   
-        pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
-        roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
-        pitch *= 180.0f / PI;
-        yaw   *= 180.0f / PI; 
-        yaw   -= 13.8; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
-        roll  *= 180.0f / PI;
-         
-        if(SerialDebug)
-        {
-          Serial.print("Yaw, Pitch, Roll: ");
-          Serial.print(yaw, 2);
-          Serial.print(", ");
-          Serial.print(pitch, 2);
-          Serial.print(", ");
-          Serial.println(roll, 2);
-          
-          Serial.print("rate = "); Serial.print((float)sumCount/sum, 2); Serial.println(" Hz");
-        }
-        
-         
-        // With these settings the filter is updating at a ~145 Hz rate using the Madgwick scheme and 
-        // >200 Hz using the Mahony scheme even though the display refreshes at only 2 Hz.
-        // The filter update rate is determined mostly by the mathematical steps in the respective algorithms, 
-        // the processor speed (8 MHz for the 3.3V Pro Mini), and the magnetometer ODR:
-        // an ODR of 10 Hz for the magnetometer produce the above rates, maximum magnetometer ODR of 100 Hz produces
-        // filter update rates of 36 - 145 and ~38 Hz for the Madgwick and Mahony schemes, respectively. 
-        // This is presumably because the magnetometer read takes longer than the gyro or accelerometer reads.
-        // This filter update rate should be fast enough to maintain accurate platform orientation for 
-        // stabilization control of a fast-moving robot or quadcopter. Compare to the update rate of 200 Hz
-        // produced by the on-board Digital Motion Processor of Invensense's MPU6050 6 DoF and MPU9150 9DoF sensors.
-        // The 3.3 V 8 MHz Pro Mini is doing pretty well!
-        
-        digitalWrite(myLed, !digitalRead(myLed));
-        count = millis(); 
-        sumCount = 0;
-        sum = 0;    
-      }
-      */
-      
-    }
-
+	        Serial.print(now);
+	        Serial.print("\t");
+	        Serial.print(ax*1000);
+	        Serial.print("\t");
+	        Serial.print(ay*1000);
+	        Serial.print("\t");
+	        Serial.print(az*1000);
+	        Serial.print("\n");
+          BT.print(now);
+          BT.print("\t");
+          BT.print(ax*1000);
+          BT.print("\t");
+          BT.print(ay*1000);
+          BT.print("\t");
+          BT.print(az*1000);
+          BT.print("\n");
+	//Serial.println(buffer);
 }
 
 //===================================================================================================================
@@ -648,8 +510,8 @@ void initMPU9250()
   writeByte(MPU9250_ADDRESS, CONFIG, 0x03);  
 
  // Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
-  writeByte(MPU9250_ADDRESS, SMPLRT_DIV, 0x04);  // Use a 200 Hz rate; a rate consistent with the filter update rate 
-                                    // determined inset in CONFIG above
+  writeByte(MPU9250_ADDRESS, SMPLRT_DIV, 0x04);  	// Use a 200 Hz rate; a rate consistent with the filter update rate 
+													// determined inset in CONFIG above
  
 // Set gyroscope full scale range
  // Range selects FS_SEL and AFS_SEL are 0 - 3, so 2-bit values are left-shifted into positions 4:3
@@ -1048,174 +910,3 @@ void magcalMPU9250(float * dest1, float * dest2)
 
   
 }
-=======
-//#include "MPU9250.h"
-#include <SD.h>
-#include <SPI.h>
-#include <Wire.h>
-
-#define    MPU9250_ADDRESS            0x68
-#define    MAG_ADDRESS                0x0C
-
-#define    ACC_FULL_SCALE_2_G        0x00  
-#define    ACC_FULL_SCALE_4_G        0x08
-#define    ACC_FULL_SCALE_8_G        0x10
-#define    ACC_FULL_SCALE_16_G       0x18
-
-File myFile;
-File accel;
-
-
-// This function read Nbytes bytes from I2C device at address Address. 
-// Put read bytes starting at register Register in the Data array. 
-void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data)
-{
-  // Set register address
-  Wire.beginTransmission(Address);
-  Wire.write(Register);
-  Wire.endTransmission();
-  
-  // Read Nbytes
-  Wire.requestFrom(Address, Nbytes); 
-  uint8_t index=0;
-  while (Wire.available())
-    Data[index++]=Wire.read();
-}
-
-
-// Write a byte (Data) in device (Address) at register (Register)
-void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
-{
-  // Set register address
-  Wire.beginTransmission(Address);
-  Wire.write(Register);
-  Wire.write(Data);
-  Wire.endTransmission();
-}
-
-
-// Initializations
-void setup()
-{
-  //Configuring pins for interrupts/timers
-
-  //Configuring control registers
-  //Clear first
-  TCCR1A = 0;
-  TCCR1B = 0;
-  TCNT1 = 0;
-  OCR1A = 31250; //8MHz/256 prescaler
-  TCCR1B |= (1 << WGM12); //CTC mode
-  TCCR1B |= (1 << CS12); //256 prescaler
-  TIMSK1 |= (1 << OCIE1A); //enable timer compare interrupt
-  
-  // Arduino initializations
-  Wire.begin();
-  Serial.begin(115200);
-  int Status = 0;
-
-  // Configure accelerometers range
-  I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_4_G);
-  // Set by pass mode for the magnetometers
-  I2CwriteByte(MPU9250_ADDRESS,0x37,0x02);
-
-  Serial.print("Initializing SD card...");
-  myFile.close();
-  pinMode(10, OUTPUT);
- 
-  if (!SD.begin(10)) 
-  {
-    Serial.println("initialization failed!");
-    Status = 0;
-    return;
-  }
-  Serial.println("initialization done.");
-
-  // open the file. note that only one file can be open at a time,
-  // so you have to close this one before opening another.
-  myFile = SD.open("test.txt", FILE_WRITE);
-  
-  // if the file opened okay, write to it:
-  if (myFile) 
-  {
-    Serial.print("Writing to test.txt...");
-    myFile.println("testing 1, 2, 3.");
-    // close the file:
-    myFile.close();
-    Serial.println("done.");
-    Status = 1;
-    
-  } 
-
-        else 
-    {
-      // if the file didn't open, print an error:
-      Serial.println("error opening test.txt");
-      Status = 0;
-    }
-  
-}
-
-
-int cpt=0;
-
-
-// Main loop, read and display data
-void loop()
-{
-  int i;
-  while(cpt<1000) {
-    i = 1;
-    myFile = SD.open("accel.txt", O_CREAT | O_WRITE);
-    while(i<5) {   
-      uint8_t Buf[14];
-      I2Cread(MPU9250_ADDRESS,0x3B,14,Buf);
-      
-      // Create 16 bits values from 8 bits data
-      
-      // Accelerometer
-      int16_t ax=-(Buf[0]<<8 | Buf[1]);
-      int16_t ay=-(Buf[2]<<8 | Buf[3]);
-      int16_t az=Buf[4]<<8 | Buf[5];
-    
-    
-    
-      char buffer[30];
-      int n;
-      n = sprintf (buffer, "%d: %d, %d, %d",cpt,ax,ay,az); 
-    
-      if (myFile) 
-      {
-        Serial.print(buffer);
-        Serial.print("\n");
-        myFile.println (buffer);
-        Serial.println("cpt");
-        cpt++;
-      } 
-    
-      else 
-      {
-          // if the file didn't open, print an error:
-          //Serial.println("error opening accel.txt");
-      }
-      Serial.println(i);
-      i++;
-    }
-    
-    myFile.close();
-    Serial.println("flushing");
-    //delay(10);
-  }
- Serial.print("all done");
- while(1){}    
-}
-
-ISR(TIMER1_COMPA_vect)
-{
- //write something to SD card to signify one second has past
- Serial.println("In ISR.");
- myFile.println("One second has past.");
- 
-}
-
->>>>>>> 2cc0403fb457f2cf899967afab015553dae4c060
