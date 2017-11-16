@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class AlertSettings extends AppCompatActivity {
 
@@ -17,6 +18,7 @@ public class AlertSettings extends AppCompatActivity {
     private Switch OnOrOffSwitch;
     private String SavedSeekBarValue;
     private String SavedOnOrOFf;
+    private int SeekBarInterval = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,13 +34,11 @@ public class AlertSettings extends AppCompatActivity {
         SeekBarValue = (TextView) findViewById(R.id.SeekBarValue);
 
         final SeekBar CountdownSeekBar = (SeekBar) findViewById(R.id.CountdownSeekBar);
-        final Button SaveButton = (Button) findViewById(R.id.SaveButton);
+        final Button SaveSettingsButton = (Button) findViewById(R.id.SaveSettingsButton);
 
         SeekBarValue.setText(prefs.getString(SavedSeekBarValue, "-"));
         OnOrOffSwitch.setChecked(prefs.getBoolean(SavedOnOrOFf, true));
-        CountdownSeekBar.setProgress(Integer.parseInt(prefs.getString(SavedSeekBarValue, "30")));
-
-
+        CountdownSeekBar.setProgress(Integer.parseInt(prefs.getString(SavedSeekBarValue, "30"))/ SeekBarInterval);
 
         CountdownSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
@@ -55,20 +55,33 @@ public class AlertSettings extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar CountdownSeekBar, int progress, boolean fromUser) {
                 // TODO Auto-generated method stub
-                SeekBarValue.setText(String.valueOf(progress));
+                SeekBarValue.setText(String.valueOf(progress* SeekBarInterval));
             }
 
         });
+
+        SaveSettingsButton.setOnClickListener(new View.OnClickListener()
+        {
+
+            public void onClick(View v)
+            {
+                String SaveSeekBarValue = SeekBarValue.getText().toString();
+                Boolean SaveOnOrOffSwitch = OnOrOffSwitch.isChecked();
+
+                prefs.edit().putString(SavedSeekBarValue, SaveSeekBarValue).apply();
+                prefs.edit().putBoolean(SavedOnOrOFf, SaveOnOrOffSwitch).apply();
+
+                ShowToast("Saved");
+            }
+        });
     }
 
-
-    public void SaveContactValuesToPrefs(View view)
+    public void ShowToast(String ToastMessage)
     {
-        String SaveSeekBarValue = SeekBarValue.getText().toString();
-        Boolean SaveOnOrOffSwitch = OnOrOffSwitch.isChecked();
-
-
-        prefs.edit().putString(SavedSeekBarValue,SaveSeekBarValue).commit();
-        prefs.edit().putBoolean(SavedOnOrOFf,SaveOnOrOffSwitch).commit();
+        Context context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, ToastMessage, duration);
+        toast.show();
     }
+
 }

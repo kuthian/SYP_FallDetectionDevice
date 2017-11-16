@@ -43,13 +43,15 @@ public class MainActivity extends AppCompatActivity {
     public String longitude = "0";
     public String latitude = "0";
     public String FallTime = "0";
+
     private FusedLocationProviderClient mFusedLocationClient;
+    private SharedPreferences prefs;
     public String SavedPhoneNumber1;
     public String SavedPhoneNumber2;
     public String SavedPhoneNumber3;
     public String SavedPhoneNumber4;
 
-    SharedPreferences prefs;
+
     public String SavedContactNumber1;
     public String SavedContactNumber2;
     public String SavedContactNumber3;
@@ -57,7 +59,10 @@ public class MainActivity extends AppCompatActivity {
 
     private String SavedSeekBarValue;
     private String SavedOnOrOFf;
-    private String CountdownEventTime;
+    private Boolean DefaultSavedOnOrOff = false;
+    private int CountdownEventTime;
+    private Boolean OnOrOffState;
+
     private String DefaultCountdownEventTime = "30";
 
     public Ringtone defaultRingtone;
@@ -89,37 +94,65 @@ public class MainActivity extends AppCompatActivity {
         SavedSeekBarValue = "com.example.app.savedseekbarvalue";
         SavedOnOrOFf = "com.example.app.savedonoroff";
 
-        CountdownEventTime = prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime);
+        CountdownEventTime = Integer.parseInt(prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime));
+        OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
 
         TimerView = (TextView) findViewById(R.id.TimerView);
         EventButton = (Button) findViewById(R.id.EventButton);
         CancelEventButton = (Button) findViewById(R.id.CancelButton);
 
+        if(!OnOrOffState)
+        {
+            EventButton.setEnabled(false);
+            EventButton.setClickable(false);
+        }
+        else
+        {
+            EventButton.setEnabled(true);
+            EventButton.setClickable(true);
+        }
+
         CancelEventButton.setEnabled(false);
         CancelEventButton.setClickable(false);
-    }
 
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
+
+        CountdownEventTime = Integer.parseInt(prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime));
+        OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
+
+        if(!OnOrOffState)
+        {
+            EventButton.setEnabled(false);
+            EventButton.setClickable(false);
+        }
+        else
+        {
+            EventButton.setEnabled(true);
+            EventButton.setClickable(true);
+        }
+    }
     protected void TriggerEventCountdown(View view)
     {
         Log.d(TAG, "TriggerEventCountdown: Begin");
 
-        if (EventButton.isEnabled())
+        if (EventButton.isEnabled() && OnOrOffState)
         {
             EventButton.setEnabled(false);
             EventButton.setClickable(false);
 
             CancelEventButton.setEnabled(true);
             CancelEventButton.setClickable(true);
-
-            CountdownEventTime = prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime);
             try
             {
                 GetDate();
                 GetPhoneNumbers();
                 CreateNotification();
 
-                Vibrate(Integer.parseInt(CountdownEventTime)+ 1);
-                StartTimer(Integer.parseInt(CountdownEventTime)+ 1);
+                StartVibrate(CountdownEventTime + 1);
+                StartTimer(CountdownEventTime + 1);
             }
             catch(Exception e)
             {
@@ -299,12 +332,12 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "ShowToast: End");
     }
 
-    public void Vibrate(int VibrateDuration)
+    public void StartVibrate(int VibrateDuration)
     {
-        Log.d(TAG, "Vibrate: Begin, Vibrating for " + VibrateDuration + " Seconds.");
+        Log.d(TAG, "StartVibrate: Begin, Vibrating for " + VibrateDuration + " Seconds.");
         smsVib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         smsVib.vibrate(VibrateDuration*1000);
-        Log.d(TAG, "Vibrate: End");
+        Log.d(TAG, "StartVibrate: End");
     }
 
     public void EndVibrate()
