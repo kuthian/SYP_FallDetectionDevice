@@ -1,3 +1,4 @@
+
 /*
  Hardware setup:
  MPU9250 Breakout --------- Arduino
@@ -264,14 +265,14 @@ void setup()
   // set digital pin to control as an output
   pinMode(9, OUTPUT);
   // set the data rate for the SoftwareSerial port
-  BT.begin(9600);
+  BT.begin(38400);
   // Send test message to other device
   BT.println("Hello from Arduino");
 
    
 	Wire.begin();
 	TWBR = 12;  // 400 kbit/sec I2C speed
-	Serial.begin(9600);
+	Serial.begin(38400);
 
 	// Set up the interrupt pin, its set as active high, push-pull
 	pinMode(intPin, INPUT);
