@@ -12,7 +12,7 @@ AT+INQ - searches for nearby Slave units
 AT+CONN1 - connects to Slave Unit 1
 ************************************************************/
 #include <SoftwareSerial.h>
-SoftwareSerial bluetooth(2, 3); // RX, TX
+SoftwareSerial bluetooth(8, 9); // RX, TX
 void setup()
 {
   // Start the hardware serial port
@@ -20,6 +20,15 @@ void setup()
   pinMode(13, OUTPUT); // onboard LED
   digitalWrite(13, LOW); // switch OFF LED
   bluetooth.begin(9600);
+  
+  int i;
+  while(i<4)
+  {
+    delay(2000);
+    bluetooth.write("AT+WAKE\r\n");
+    Serial.write("AT+WAKE\r\n");
+    i++;
+  }
   // un REM this to set up a Master and connect to a Slave
   
 //  Serial.println("BLE CC41A Bluetooth");
@@ -45,10 +54,23 @@ void loop()
   while (bluetooth.available() > 0) {
     char inByte = bluetooth.read();
     Serial.write(inByte);
+    digitalWrite(13, HIGH); // switch on LED
   }
+
+  
  // Read user input if available.
- if (Serial.available()){
- delay(10); // The DELAY!
- bluetooth.write(Serial.read());
+ if (Serial.available())
+ {
+ 
+ delay(15); // The DELAY!
+ digitalWrite(13, LOW); // switch OFF LED
+ char outByte = Serial.read();
+ Serial.write(outByte);
+ bluetooth.write(outByte);
  }
+ else
+ {
+   //digitalWrite(13, LOW); // switch OFF LED
+ }
+ 
 }

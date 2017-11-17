@@ -107,7 +107,7 @@ public class EmergencyContacts extends AppCompatActivity {
         String SaveContactName3 = ContactName3.getText().toString();
         String SaveContactName4 = ContactName4.getText().toString();
 
-        prefs.edit().putString(SavedContactName1,SaveContactName1).commit();
+        prefs.edit().putString(SavedContactName1,SaveContactName1).apply();
         prefs.edit().putString(SavedContactName2,SaveContactName2).apply();
         prefs.edit().putString(SavedContactName3,SaveContactName3).apply();
         prefs.edit().putString(SavedContactName4,SaveContactName4).apply();

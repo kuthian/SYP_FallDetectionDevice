@@ -1,31 +1,35 @@
 package com.example.fallcompanion;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.media.MediaPlayer;
+import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.Vibrator;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 import android.support.v7.app.NotificationCompat.Builder;
 import android.telephony.SmsManager;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -34,30 +38,51 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MAIN";
+
     public String longitude = "0";
     public String latitude = "0";
     public String FallTime = "0";
+
     private FusedLocationProviderClient mFusedLocationClient;
+    private SharedPreferences prefs;
     public String SavedPhoneNumber1;
     public String SavedPhoneNumber2;
     public String SavedPhoneNumber3;
     public String SavedPhoneNumber4;
 
-    SharedPreferences prefs;
+
     public String SavedContactNumber1;
     public String SavedContactNumber2;
     public String SavedContactNumber3;
     public String SavedContactNumber4;
 
+    private String SavedSeekBarValue;
+    private String SavedOnOrOFf;
+    private Boolean DefaultSavedOnOrOff = false;
+    private int CountdownEventTime;
+    private Boolean OnOrOffState;
+
+    private String DefaultCountdownEventTime = "30";
+
+    public Ringtone defaultRingtone;
+
+    Vibrator smsVib;
+
+    CountDownTimer Timer;
+    Timer timer;
+    TimerTask task;
+    final Handler handler = new Handler();
+
+    private TextView TimerView;
+    private Button EventButton;
+    private Button CancelEventButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-/*
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayShowHomeEnabled(true);
-        actionBar.setIcon(R.mipmap.notification_icon);
-*/
+
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         prefs = this.getSharedPreferences("com.example.app", Context.MODE_PRIVATE);
 
@@ -65,79 +90,83 @@ public class MainActivity extends AppCompatActivity {
         SavedContactNumber2 = "com.example.app.savedcontactnumber2";
         SavedContactNumber3 = "com.example.app.savedcontactnumber3";
         SavedContactNumber4 = "com.example.app.savedcontactnumber4";
+
+        SavedSeekBarValue = "com.example.app.savedseekbarvalue";
+        SavedOnOrOFf = "com.example.app.savedonoroff";
+
+        CountdownEventTime = Integer.parseInt(prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime));
+        OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
+
+        TimerView = (TextView) findViewById(R.id.TimerView);
+        EventButton = (Button) findViewById(R.id.EventButton);
+        CancelEventButton = (Button) findViewById(R.id.CancelButton);
+
+        if(!OnOrOffState)
+        {
+            EventButton.setEnabled(false);
+            EventButton.setClickable(false);
+        }
+        else
+        {
+            EventButton.setEnabled(true);
+            EventButton.setClickable(true);
+        }
+
+        CancelEventButton.setEnabled(false);
+        CancelEventButton.setClickable(false);
+
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
+
+        CountdownEventTime = Integer.parseInt(prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime));
+        OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
+
+        if(!OnOrOffState)
+        {
+            EventButton.setEnabled(false);
+            EventButton.setClickable(false);
+        }
+        else
+        {
+            EventButton.setEnabled(true);
+            EventButton.setClickable(true);
+        }
+    }
+    protected void TriggerEventCountdown(View view)
+    {
+        Log.d(TAG, "TriggerEventCountdown: Begin");
+
+        if (EventButton.isEnabled() && OnOrOffState)
+        {
+            EventButton.setEnabled(false);
+            EventButton.setClickable(false);
+
+            CancelEventButton.setEnabled(true);
+            CancelEventButton.setClickable(true);
+            try
+            {
+                GetDate();
+                GetPhoneNumbers();
+                CreateNotification();
+
+                StartVibrate(CountdownEventTime + 1);
+                StartTimer(CountdownEventTime + 1);
+            }
+            catch(Exception e)
+            {
+                ShowToast("An Unexpected Error Occurred");
+            }
+        }
+
+        Log.d(TAG, "TriggerEventCountdown: End");
     }
 
-    protected void SendSMS(View view)
+    public void StartEventTasks()
     {
-        GetDate();
-        GetPhoneNumbers();
-        SendGpsSms();
-        CreateNotification();
         StartAlarm();
-        Vibrate(1000);
-
-    }
-    private void SendFeedbackSMS(String phoneNumber, String message)
-    {
-        String SENT = "SMS_SENT";
-        String DELIVERED = "SMS_DELIVERED";
-
-        PendingIntent sentPI = PendingIntent.getBroadcast(this, 0,
-                new Intent(SENT), 0);
-
-        PendingIntent deliveredPI = PendingIntent.getBroadcast(this, 0,
-                new Intent(DELIVERED), 0);
-
-        //---when the SMS has been sent---
-        registerReceiver(new BroadcastReceiver(){
-            @Override
-            public void onReceive(Context arg0, Intent arg1) {
-                switch (getResultCode())
-                {
-                    case Activity.RESULT_OK:
-                        Toast.makeText(getBaseContext(), "SMS sent",
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                        Toast.makeText(getBaseContext(), "Generic failure",
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_NO_SERVICE:
-                        Toast.makeText(getBaseContext(), "No service",
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_NULL_PDU:
-                        Toast.makeText(getBaseContext(), "Null PDU",
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_RADIO_OFF:
-                        Toast.makeText(getBaseContext(), "Radio off",
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                }
-            }
-        }, new IntentFilter(SENT));
-
-        //---when the SMS has been delivered---
-        registerReceiver(new BroadcastReceiver(){
-            @Override
-            public void onReceive(Context arg0, Intent arg1) {
-                switch (getResultCode())
-                {
-                    case Activity.RESULT_OK:
-                        Toast.makeText(getBaseContext(), "SMS delivered",
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        Toast.makeText(getBaseContext(), "SMS not delivered",
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                }
-            }
-        }, new IntentFilter(DELIVERED));
-
-        android.telephony.SmsManager sms = SmsManager.getDefault();
-        sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+        SendGpsSms();
     }
     public void SendSimpleSMS(String PhoneNumber, String LocationText) throws InterruptedException
     {
@@ -152,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
             ShowToast("No Message Sent");
         }
     }
+
     public void SendGpsSms()
     {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -211,11 +241,13 @@ public class MainActivity extends AppCompatActivity {
                     });
         }
     }
+
     public void GetDate()
     {
         Date CurrentTime = Calendar.getInstance().getTime();
         FallTime = CurrentTime.toString();
     }
+
     private void GetPhoneNumbers()
     {
         SavedPhoneNumber1 = prefs.getString(SavedContactNumber1, "-");
@@ -226,12 +258,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void CreateNotification()
     {
+        Log.d(TAG, "CreateNotification: Begin");
+
         NotificationCompat.Builder mBuilder =
                 (Builder) new Builder(this)
                         .setSmallIcon(R.drawable.notification_icon)
-                        .setContentTitle("My notification")
-                        .setContentText("Hello World!");
-
+                        .setContentTitle("Fall Detection Device")
+                        .setContentText("Fall Detected");
 
         Intent resultIntent = new Intent(this, MainActivity.class);
 // Because clicking the notification opens a new ("special") activity, there's
@@ -252,47 +285,159 @@ public class MainActivity extends AppCompatActivity {
         NotificationManager mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 // Builds the notification and issues it.
         mNotifyMgr.notify(mNotificationId, mBuilder.build());
+
+        Log.d(TAG, "CreateNotification: End");
     }
 
     public void StartAlarm()
     {
-        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        Log.d(TAG, "StartAlarm: Begin");
+        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+        defaultRingtone = RingtoneManager.getRingtone(getApplicationContext(), Settings.System.DEFAULT_RINGTONE_URI);
+
+        defaultRingtone.play();
+/*        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
         MediaPlayer mp = MediaPlayer.create(getApplicationContext(), notification);
-        mp.start();
+        mp.start();*/
+        Log.d(TAG, "StartAlarm: End");
     }
 
+    public void EndAlarm()
+    {
+        Log.d(TAG, "EndAlarm: Begin");
+        if(defaultRingtone != null)
+        {
+            if (defaultRingtone.isPlaying()) {
+                Log.d(TAG, "EndAlarm: Stopping Alarm");
+                defaultRingtone.stop();
+
+            }
+        }
+/*        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        MediaPlayer mp = MediaPlayer.create(getApplicationContext(), notification);
+        mp.start();*/
+        Log.d(TAG, "EndAlarm: End");
+    }
 
     public void ShowToast(String ToastMessage)
     {
+        Log.d(TAG, "ShowToast: Begin");
+
         Context context = getApplicationContext();
         int duration = Toast.LENGTH_SHORT;
         Toast toast = Toast.makeText(context, ToastMessage, duration);
         toast.show();
+
+        Log.d(TAG, "ShowToast: End");
     }
-    public void Vibrate(int VibrateDuration)
+
+    public void StartVibrate(int VibrateDuration)
     {
-        Vibrator smsVib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        smsVib.vibrate(VibrateDuration);
+        Log.d(TAG, "StartVibrate: Begin, Vibrating for " + VibrateDuration + " Seconds.");
+        smsVib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        smsVib.vibrate(VibrateDuration*1000);
+        Log.d(TAG, "StartVibrate: End");
     }
-    public void open_bluetooth(View view)
+
+    public void EndVibrate()
     {
+        if (smsVib != null)
+        {
+            smsVib.cancel();
+            smsVib = null;
+        }
+
+    }
+    public void StartTimer(int TimerTime)
+    {
+        Log.d(TAG, "StartTimer: Begin");
+
+        Timer = new CountDownTimer(TimerTime*1000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                TimerView.setText("Event Timer: " + millisUntilFinished / 1000);
+            }
+
+            public void onFinish() {
+
+                ShowToast("Alarm Raised");
+                StartEventTasks();
+                TimerView.setText("");
+            }
+        }.start();
+
+        Log.d(TAG, "StartTimer: End");
+    }
+    public void EndTimer()
+    {
+        Log.d(TAG, "EndTimer: Begin");
+        if (Timer !=null)
+        {
+            Timer.cancel();
+            timer = null;
+            ShowToast("Event Cancelled");
+            TimerView.setText("");
+        }
+        Log.d(TAG, "StartTimer: End");
+    }
+
+    public void Cancel(View view)
+    {
+        Log.d(TAG, "Cancel: Begin");
+        //StopTimerTask();
+        try
+        {
+            EndTimer();
+            EndVibrate();
+            EndAlarm();
+            ShowToast("Event Cancelled");
+        }
+        catch(Exception e)
+        {
+            ShowToast("Error During Canceling");
+        }
+
+        EventButton.setClickable(true);
+        EventButton.setEnabled(true);
+
+        if (EventButton.isEnabled() && EventButton.isClickable())
+        {
+            CancelEventButton.setEnabled(false);
+            CancelEventButton.setClickable(false);
+        }
+
+        Log.d(TAG, "Cancel: End");
+    }
+
+    public void OpenBluetooth(View view)
+    {
+
+        Log.d(TAG, "OpenBluetooth: Begin");
         Intent intent = new Intent(this, Bluetooth.class);
         startActivity(intent);
+        Log.d(TAG, "OpenBluetooth: End");
     }
-    public void open_emergency_contacts(View view)
+    public void OpenEmergencyContacts(View view)
     {
+        Log.d(TAG, "OpenEmergencyContacts: Begin");
         Intent intent = new Intent(this, EmergencyContacts.class);
         startActivity(intent);
+        Log.d(TAG, "OpenEmergencyContacts: End");
     }
-    public void open_fall_data(View view)
+    public void OpenFallData(View view)
     {
+        Log.d(TAG, "OpenFallData: Begin");
         Intent intent = new Intent(this, FallData.class);
         startActivity(intent);
+        Log.d(TAG, "OpenFallData: End");
     }
-    public void open_alert_settings(View view)
+    public void OpenAlertSettings(View view)
     {
+        Log.d(TAG, "OpenAlertSettings: Begin");
         Intent intent = new Intent(this, AlertSettings.class);
         startActivity(intent);
+        Log.d(TAG, "OpenAlertSettings: End");
     }
 
 
