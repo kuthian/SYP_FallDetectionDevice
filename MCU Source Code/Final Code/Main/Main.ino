@@ -16,6 +16,14 @@ float vxz = 0;
 float vyz = 0;
 float vxyz = 0;
 
+float avx[100] = 0;
+float avy[100] = 0;
+float avz[100] = 0;
+float avxy[100] = 0;
+float avxz[100] = 0;
+float avyz[100] = 0;
+float avxyz[100] = 0;
+
 
 
 MPU9250 myIMU;                  // Define the I2C address for the MPU
@@ -79,6 +87,7 @@ void loop()
     vyz = magfunction(myIMU.ay,myIMU.az);
     vxyz = magfunction(myIMU.ax,myIMU.ay,myIMU.az);
 
+    
     myIMU.updateTime();
 
     Serial.print(now);
