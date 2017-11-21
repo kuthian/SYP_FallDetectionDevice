@@ -1,12 +1,17 @@
 #include "MPU9250.h"            // Sparkfun Library
 #include <SoftwareSerial.h>     // Bluetooth Serial Connection
+#include <cppQueue.h>           // Queue Library
+#include <Gaussian.h>
+#include <LinkedList.h>
+#include <GaussianAverage.h>
 
 SoftwareSerial BT(5, 6);        // Init Blutooth Serial Rx Pin 5, Tx Pin 6
+
+double threshold = 2.0;
 
 int intPin = 2;                 // These can be changed, 2 and 3 are the Arduinos ext int pins
 double now = 0;                 // Set up variable for the timer
 uint8_t SmpRtDiv = 0x09;        // This is the number the fundamental freq of MPU sampler is divided by +1 the default fund freq is 1kHz IE for a 100Hz refresh SmpRtDiv = 9
-
 
 float vx = 0;
 float vy = 0;
@@ -16,14 +21,31 @@ float vxz = 0;
 float vyz = 0;
 float vxyz = 0;
 
-float avx[100] = 0;
-float avy[100] = 0;
-float avz[100] = 0;
-float avxy[100] = 0;
-float avxz[100] = 0;
-float avyz[100] = 0;
-float avxyz[100] = 0;
+GaussianAverage qvx = GaussianAverage(100);
+//GaussianAverage qvy = GaussianAverage(100);
+//GaussianAverage qvz = GaussianAverage(100);
+//GaussianAverage qvxy = GaussianAverage(100);
+//GaussianAverage qvxz = GaussianAverage(100);
+//GaussianAverage qvyz = GaussianAverage(100);
+//GaussianAverage qvxyz = GaussianAverage(100);
 
+Gaussian XAVG = 0.0;
+//Gaussian YAVG = 0.0;
+//Gaussian ZAVG = 0.0;
+//Gaussian XYAVG = 0.0;
+//Gaussian XZAVG = 0.0;
+//Gaussian YZAVG = 0.0;
+//Gaussian XYZAVG = 0.0;
+
+double dX = 0.0;
+double dY = 0.0;
+double dZ = 0.0;
+double dXY = 0.0;
+double dXZ = 0.0;
+double dYZ = 0.0;
+double dXYZ = 0.0;
+
+int i = 0;
 
 
 MPU9250 myIMU;                  // Define the I2C address for the MPU
@@ -87,27 +109,109 @@ void loop()
     vyz = magfunction(myIMU.ay,myIMU.az);
     vxyz = magfunction(myIMU.ax,myIMU.ay,myIMU.az);
 
+//    qvx.add(Gaussian(vx));
+//    qvy.add(Gaussian(vy));
+//    qvz.add(Gaussian(vz));
+//    qvxy.add(Gaussian(vxy));
+//    qvxz.add(Gaussian(vxz));
+//    qvyz.add(Gaussian(vyz));
+//    qvxyz.add(Gaussian(vxyz));
+
+    qvx+= vx;
+//    qvy+= vy;
+//    qvz+= vz;
+//    qvxy+= vxy;
+//    qvxz+= vxz;
+//    qvyz+= vyz;
+//    qvxyz+= vxyz;
+
+
+    XAVG = qvx.process();
+//    YAVG = qvy.process();
+//    ZAVG = qvz.process();
+//    XYAVG = qvxy.process();
+//    XZAVG = qvxz.process();
+//    YZAVG = qvyz.process();
+//    XYZAVG = qvxyz.process();
+//
+    dX = vx-XAVG.mean; 
+//    dY = vy-YAVG.mean; 
+//    dZ = vz-ZAVG.mean; 
+//    dXY = vxy-XYAVG.mean; 
+//    dXZ = vxz-XZAVG.mean; 
+//    dYZ = vyz-YZAVG.mean; 
+//    dXYZ = vxyz-XYZAVG.mean; 
+//       
+//    if(i > 100){
+//      if ((dX > threshold) || (dY > threshold) || (dZ > threshold) || (dXY > threshold) || (dXZ > threshold) || (dYZ > threshold) || (dXYZ > threshold)){
+//      Serial.print("\n");
+//      Serial.print("ALERT");
+//      Serial.print("\n");
+//      BT.print("\n");
+//      BT.print("ALERT");
+//      BT.print("\n");
+//      }
+//    }
     
     myIMU.updateTime();
 
+
     Serial.print(now);
     Serial.print("\t");
-    Serial.print(myIMU.ax*1000);
+    Serial.print(vx);
     Serial.print("\t");
-    Serial.print(myIMU.ay*1000);
+    Serial.print(vy);
     Serial.print("\t");
-    Serial.print(myIMU.az*1000);
+    Serial.print(vz);
+    Serial.print("\t");
+    Serial.print(vxy);
+    Serial.print("\t");
+    Serial.print(vxz);
+    Serial.print("\t");
+    Serial.print(vyz);
+    Serial.print("\t");
+    Serial.print(vxyz);
     Serial.print("\n");
-    BT.print(now);
-    BT.print("\t");
-    BT.print(myIMU.ax*1000);
-    BT.print("\t");
-    BT.print(myIMU.ay*1000);
-    BT.print("\t");
-    BT.print(myIMU.az*1000);
-    BT.print("\n");
+    
+//    BT.print(now);
+//    BT.print("\t");
+//    BT.print(vx);
+//    BT.print("\t");
+//    BT.print(vy);
+//    BT.print("\t");
+//    BT.print(vz);
+//    BT.print("\t");
+//    BT.print(vxy);
+//    BT.print("\t");
+//    BT.print(vxz);
+//    BT.print("\t");
+//    BT.print(vyz);
+//    BT.print("\t");
+//    BT.print(vxyz);
+//    BT.print("\n");
+
+    
+//    Serial.print(now);
+//    Serial.print("\t");
+//    Serial.print(myIMU.ax*1000);
+//    Serial.print("\t");
+//    Serial.print(myIMU.ay*1000);
+//    Serial.print("\t");
+//    Serial.print(myIMU.az*1000);
+//    Serial.print("\n");
+//    BT.print(now);
+//    BT.print("\t");
+//    BT.print(myIMU.ax*1000);
+//    BT.print("\t");
+//    BT.print(myIMU.ay*1000);
+//    BT.print("\t");
+//    BT.print(myIMU.az*1000);
+//    BT.print("\n");
 
   }
+  
+  i++;
+
 }
 
 float magfunction(float one){
