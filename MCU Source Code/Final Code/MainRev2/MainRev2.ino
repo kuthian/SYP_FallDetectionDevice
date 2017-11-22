@@ -1,6 +1,5 @@
 #include "MPU9250.h"            // Sparkfun Library
 #include <SoftwareSerial.h>     // Bluetooth Serial Connection
-#include <cppQueue.h>           // Queue Library
 #include <Gaussian.h>
 #include <LinkedList.h>
 #include <GaussianAverage.h>
@@ -155,7 +154,6 @@ void loop()
     
     myIMU.updateTime();
 
-
     Serial.print(now);
     Serial.print("\t");
     Serial.print(vx);
@@ -210,7 +208,7 @@ void loop()
 
   }
   
-  i++;
+  //i++;
 
 }
 
