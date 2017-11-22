@@ -2,23 +2,36 @@
 #include <quaternionFilters.h>
 #include "MPU9250.h"            // Sparkfun Library
 #include <SoftwareSerial.h>     // Bluetooth Serial Connection
-#include <LinkedList.h>
-#include <QueueList.h>
 
 MPU9250 myIMU;                  // Define the I2C address for the MPU
-  //Create Gaussian vectors
-QueueList <float> X;
-QueueList <float> Y;
-QueueList <float> Z;
-QueueList <float> XY;
-QueueList <float> XZ;
-QueueList <float> YZ;
-QueueList <float> XYZ;
+
+float run_vx=0;
+float run_vy=0;
+float run_vz=0;
+float run_vxy=0;
+float run_vxz=0;
+float run_vyz=0;
+float run_vxyz=0;
+
+float dx; 
+float dy;
+float dz;
+float dxy;
+float dxz;
+float dyz;
+float dxyz;
+
+int i =1;
+int N = 100;
+
+double now = 0;// Set up variable for the timer
+float threshold = 2.0;
+
+SoftwareSerial BT(5, 6);        // Init Blutooth Serial Rx Pin 5, Tx Pin 6
 
 void setup()
 {
   int intPin = 2; //These can be changed, 2 and 3 are the Arduinos ext int pins
-  SoftwareSerial BT(5, 6);        // Init Blutooth Serial Rx Pin 5, Tx Pin 6
   
   pinMode(9, OUTPUT);           // Needed for SoftSerial not sure why
   BT.begin(38400);              // set the data rate for the SoftwareSerial port
@@ -55,16 +68,11 @@ void setup()
 }
 
 void loop()
-{
-    double now = 0;// Set up variable for the timer
-    float threshold = 2.0;
+{   
     
   // This loops until the the MPU Int data register goes high, This will go high only when every data register contains new data 
-  
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01)
   {  
-//    if(X.count() >= 99)
-//    {
       //Reading from MPU9250
       now = millis();                                   // records how long the MPU has been running in milliseconds
       myIMU.readAccelData(myIMU.accelCount);            // Read the x/y/z adc values
@@ -83,60 +91,70 @@ void loop()
       float vyz = magfunction2(myIMU.ay,myIMU.az);
       float vxyz = magfunction3(myIMU.ax,myIMU.ay,myIMU.az);
 
-      int stat = X.count();
-      if(stat>=10)
+      if(i>100)
       {
-        X.pop();
-        X.push(vx);
-        Y.pop();
-        Y.push(vy);
-        Z.pop();
-        Z.push(vz);
-        XY.pop();
-        XY.push(vxy);
-        XZ.pop();
-        XZ.push(vxz);
-        YZ.pop();
-        YZ.push(vyz);
-        XYZ.pop();
-        XYZ.push(vyz);
+        run_vx = run_vx/N + vx/N - run_vx/sq(N);
+        run_vy = run_vy/N + vy/N - run_vy/sq(N);
+        run_vz = run_vz/N + vz/N - run_vz/sq(N);
+        run_vxy = run_vxy/N + vxy/N - run_vxy/sq(N);
+        run_vxz = run_vxz/N + vxz/N - run_vxz/sq(N);
+        run_vyz = run_vyz/N + vyz/N - run_vyz/sq(N);
+        run_vxyz = run_vxyz/N + vxyz/N - run_vxyz/sq(N);
+  
+        float dx = delta(vx, run_vx); 
+        float dy = delta(vy, run_vy);
+        float dz = delta(vz, run_vz);
+        float dxy = delta(vxy, run_vxy);
+        float dxz = delta(vxz, run_vxz);
+        float dyz = delta(vyz, run_vyz);
+        float dxyz = delta(vxyz, run_vxyz);
+
+
+        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
+        {
+          Serial.print("\n");
+          Serial.print("ALERT");
+          Serial.print("\n");
+//          BT.print("\n");
+//          BT.print("ALERT");
+//          BT.print("\n");
+        }
+
+        Serial.print(dx);
+        Serial.print("\t");
+        Serial.print(dy);
+        Serial.print("\t");
+        Serial.print(dz);
+        Serial.print("\t");
+        Serial.print(dxy);
+        Serial.print("\t");
+        Serial.print(dxz);
+        Serial.print("\t");
+        Serial.print(dyz);
+        Serial.print("\t");
+        Serial.print(dxyz);
+        Serial.print("\n");
+        
       }
-      
+
       else
       {
-        X.push(vx);
-        Y.push(vy);
-        Z.push(vz);
-        XY.push(vxy);
-        XZ.push(vxz);
-        YZ.push(vyz);
-        XYZ.push(vxyz);
+        run_vx = run_vx + vx;
+        run_vy = run_vy + vy;
+        run_vz = run_vz + vz;
+        run_vxy = run_vxy + vxy;
+        run_vxz = run_vxz + vxz;
+        run_vyz = run_vyz + vyz;
+        run_vxyz = run_vxyz + vxyz;
+
+        i++;
       }
-      
-  //    float dx = delta(vx, qvx); //Appends and calculates delta value
-  //    float dy = delta(vy, qvy);
-  //    float dz = delta(vz, qvz);
-  //    float dxy = delta(vxy, qvxy);
-  //    float dxz = delta(vxz, qvxz);
-  //    float dyz = delta(vyz, qvyz);
-  //    float dxyz = delta(vxyz, qvxyz);
-  
-  ////       
-  //    if(i > 100){
-  //      if ((dX > threshold) || (dY > threshold) || (dZ > threshold) || (dXY > threshold) || (dXZ > threshold) || (dYZ > threshold) || (dXYZ > threshold)){
-  //      Serial.print("\n");
-  //      Serial.print("ALERT");
-  //      Serial.print("\n");
-  //      BT.print("\n");
-  //      BT.print("ALERT");
-  //      BT.print("\n");
-  //      }
-  //    }
       
       myIMU.updateTime();
   
-      //Serial.print(now);
-      //Serial.print("\t");
+      Serial.print(now);
+      Serial.print("\t");
+      Serial.print("\t");
       Serial.print(vx);
       Serial.print("\t");
       Serial.print(vy);
@@ -151,41 +169,24 @@ void loop()
       Serial.print("\t");
       Serial.print(vxyz);
       Serial.print("\n");
-      
-  //    BT.print(now);
-  //    BT.print("\t");
-  //    BT.print(vx);
-  //    BT.print("\t");
-  //    BT.print(vy);
-  //    BT.print("\t");
-  //    BT.print(vz);
-  //    BT.print("\t");
-  //    BT.print(vxy);
-  //    BT.print("\t");
-  //    BT.print(vxz);
-  //    BT.print("\t");
-  //    BT.print(vyz);
-  //    BT.print("\t");
-  //    BT.print(vxyz);
-  //    BT.print("\n");
-  
-      
-  //    Serial.print(now);
-  //    Serial.print("\t");
-  //    Serial.print(myIMU.ax*1000);
-  //    Serial.print("\t");
-  //    Serial.print(myIMU.ay*1000);
-  //    Serial.print("\t");
-  //    Serial.print(myIMU.az*1000);
-  //    Serial.print("\n");
-  //    BT.print(now);
-  //    BT.print("\t");
-  //    BT.print(myIMU.ax*1000);
-  //    BT.print("\t");
-  //    BT.print(myIMU.ay*1000);
-  //    BT.print("\t");
-  //    BT.print(myIMU.az*1000);
-  //    BT.print("\n");
+
+      BT.print(now);
+      BT.print("\t");
+      BT.print("\t");
+      BT.print(vx);
+      BT.print("\t");
+      BT.print(vy);
+      BT.print("\t");
+      BT.print(vz);
+      BT.print("\t");
+      BT.print(vxy);
+      BT.print("\t");
+      BT.print(vxz);
+      BT.print("\t");
+      BT.print(vyz);
+      BT.print("\t");
+      BT.print(vxyz);
+      BT.print("\n");
 
   }
 
@@ -206,13 +207,10 @@ float magfunction3(float one, float two, float three){
   return mags;
 }
 
-//Appends and calculates delta value
-//float delta(float vx, GaussianAverage qvx)
-//{
-//  //qvx+=vx;
-//  qvx.add(Gaussian(vx));
-//  Gaussian XAVG = qvx.process();
-//  float delta = vx-XAVG.mean;
-//  return delta;
-//}
+//Calculates delta value
+float delta(float vx, float run_vx)
+{
+  float delta = vx-run_vx;
+  return delta;
+}
 
