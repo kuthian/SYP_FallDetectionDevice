@@ -93,13 +93,27 @@ void loop()
 
       if(i>100)
       {
-        run_vx = run_vx/N + vx/N - run_vx/sq(N);
-        run_vy = run_vy/N + vy/N - run_vy/sq(N);
-        run_vz = run_vz/N + vz/N - run_vz/sq(N);
-        run_vxy = run_vxy/N + vxy/N - run_vxy/sq(N);
-        run_vxz = run_vxz/N + vxz/N - run_vxz/sq(N);
-        run_vyz = run_vyz/N + vyz/N - run_vyz/sq(N);
-        run_vxyz = run_vxyz/N + vxyz/N - run_vxyz/sq(N);
+        
+        if(i == 101)
+        {
+          run_vx = run_vx/100;
+          run_vy = run_vy/100;
+          run_vz = run_vz/100;
+          run_vxy = run_vxy/100;
+          run_vxz = run_vxz/100;
+          run_vyz = run_vxz/100;
+          run_vxyz = run_vxyz/100;
+
+          i++;
+        }
+        
+        run_vx = (run_vx) + (vx/N) - (run_vx/N);
+        run_vy = run_vy + vy/N - run_vy/N;
+        run_vz = run_vz + vz/N - run_vz/N;
+        run_vxy = run_vxy + vxy/N - run_vxy/N;
+        run_vxz = run_vxz + vxz/N - run_vxz/N;
+        run_vyz = run_vyz + vyz/N - run_vyz/N;
+        run_vxyz = run_vxyz + vxyz/N - run_vxyz/N;
   
         float dx = delta(vx, run_vx); 
         float dy = delta(vy, run_vy);
@@ -110,30 +124,71 @@ void loop()
         float dxyz = delta(vxyz, run_vxyz);
 
 
-        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
-        {
-          Serial.print("\n");
-          Serial.print("ALERT");
-          Serial.print("\n");
-//          BT.print("\n");
-//          BT.print("ALERT");
-//          BT.print("\n");
-        }
+//        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
+//        {
+////          Serial.print("\n");
+////          Serial.print("ALERT");
+////          Serial.print("\n");
+////          BT.print("\n");
+////          BT.print("ALERT");
+////          BT.print("\n");
+//        }
 
-        Serial.print(dx);
-        Serial.print("\t");
-        Serial.print(dy);
-        Serial.print("\t");
-        Serial.print(dz);
-        Serial.print("\t");
-        Serial.print(dxy);
-        Serial.print("\t");
-        Serial.print(dxz);
-        Serial.print("\t");
-        Serial.print(dyz);
-        Serial.print("\t");
-        Serial.print(dxyz);
-        Serial.print("\n");
+        myIMU.updateTime();
+
+      Serial.print(now);
+      Serial.print("\t");
+      Serial.print("\t");
+      Serial.print(run_vx);
+      Serial.print("\t");
+      Serial.print(run_vy);
+      Serial.print("\t");
+      Serial.print(run_vz);
+      Serial.print("\t");
+      Serial.print(run_vxy);
+      Serial.print("\t");
+      Serial.print(run_vxz);
+      Serial.print("\t");
+      Serial.print(run_vyz);
+      Serial.print("\t");
+      Serial.print(run_vxyz);
+      Serial.print("\n");
+        
+        
+        BT.print(now);
+        BT.print("\t");
+        BT.print("\t");
+        BT.print("\t");
+        BT.print("\t");
+        BT.print(vx);
+        BT.print("\t");
+        BT.print(vy);
+        BT.print("\t");
+        BT.print(vz);
+        BT.print("\t");
+        BT.print(vxy);
+        BT.print("\t");
+        BT.print(vxz);
+        BT.print("\t");
+        BT.print(vyz);
+        BT.print("\t");
+        BT.print(vxyz);
+
+        BT.print("\t");
+        BT.print(dx);
+        BT.print("\t");
+        BT.print(dy);
+        BT.print("\t");
+        BT.print(dz);
+        BT.print("\t");
+        BT.print(dxy);
+        BT.print("\t");
+        BT.print(dxz);
+        BT.print("\t");
+        BT.print(dyz);
+        BT.print("\t");
+        BT.print(dxyz);
+        BT.print("\n");
         
       }
 
@@ -148,45 +203,63 @@ void loop()
         run_vxyz = run_vxyz + vxyz;
 
         i++;
-      }
-      
-      myIMU.updateTime();
-  
+
       Serial.print(now);
       Serial.print("\t");
       Serial.print("\t");
-      Serial.print(vx);
+      Serial.print(run_vx);
       Serial.print("\t");
-      Serial.print(vy);
+      Serial.print(run_vy);
       Serial.print("\t");
-      Serial.print(vz);
+      Serial.print(run_vz);
       Serial.print("\t");
-      Serial.print(vxy);
+      Serial.print(run_vxy);
       Serial.print("\t");
-      Serial.print(vxz);
+      Serial.print(run_vxz);
       Serial.print("\t");
-      Serial.print(vyz);
+      Serial.print(run_vyz);
       Serial.print("\t");
-      Serial.print(vxyz);
+      Serial.print(run_vxyz);
       Serial.print("\n");
+      }
+      
+      //myIMU.updateTime();
+  
+//      Serial.print(now);
+//      Serial.print("\t");
+//      Serial.print("\t");
+//      Serial.print(vx);
+//      Serial.print("\t");
+//      Serial.print(vy);
+//      Serial.print("\t");
+//      Serial.print(vz);
+//      Serial.print("\t");
+//      Serial.print(vxy);
+//      Serial.print("\t");
+//      Serial.print(vxz);
+//      Serial.print("\t");
+//      Serial.print(vyz);
+//      Serial.print("\t");
+//      Serial.print(vxyz);
+//      Serial.print("\n");
 
-      BT.print(now);
-      BT.print("\t");
-      BT.print("\t");
-      BT.print(vx);
-      BT.print("\t");
-      BT.print(vy);
-      BT.print("\t");
-      BT.print(vz);
-      BT.print("\t");
-      BT.print(vxy);
-      BT.print("\t");
-      BT.print(vxz);
-      BT.print("\t");
-      BT.print(vyz);
-      BT.print("\t");
-      BT.print(vxyz);
-      BT.print("\n");
+//      BT.print(now);
+//      BT.print("\t");
+//      BT.print("\t");
+//      BT.print(vx);
+//      BT.print("\t");
+//      BT.print(vy);
+//      BT.print("\t");
+//      BT.print(vz);
+//      BT.print("\t");
+//      BT.print(vxy);
+//      BT.print("\t");
+//      BT.print(vxz);
+//      BT.print("\t");
+//      BT.print(vyz);
+//      BT.print("\t");
+//      BT.print(vxyz);
+//      BT.print("\n");
 
   }
 
