@@ -13,11 +13,13 @@ import android.widget.Toast;
 
 public class AlertSettings extends AppCompatActivity {
 
+    private static final String TAG = "ALERTSETTINGS";
+
     SharedPreferences prefs;
     private TextView SeekBarValue;
     private Switch OnOrOffSwitch;
-    private String SavedSeekBarValue;
-    private String SavedOnOrOFf;
+    private String SavedSeekBarValue = "com.example.app.savedseekbarvalue";;
+    private String SavedOnOrOFf = "com.example.app.savedonoroff";;
     private int SeekBarInterval = 5;
 
     @Override
@@ -26,9 +28,6 @@ public class AlertSettings extends AppCompatActivity {
         setContentView(R.layout.activity_alert_settings);
 
         prefs = this.getSharedPreferences("com.example.app", Context.MODE_PRIVATE);
-
-        SavedSeekBarValue = "com.example.app.savedseekbarvalue";
-        SavedOnOrOFf = "com.example.app.savedonoroff";
 
         OnOrOffSwitch = (Switch) findViewById(R.id.OnOrOffSwitch);
         SeekBarValue = (TextView) findViewById(R.id.SeekBarValue);
@@ -71,17 +70,8 @@ public class AlertSettings extends AppCompatActivity {
                 prefs.edit().putString(SavedSeekBarValue, SaveSeekBarValue).apply();
                 prefs.edit().putBoolean(SavedOnOrOFf, SaveOnOrOffSwitch).apply();
 
-                ShowToast("Saved");
+                Utils.ShowToast(getApplicationContext(),"Saved");
             }
         });
     }
-
-    public void ShowToast(String ToastMessage)
-    {
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, ToastMessage, duration);
-        toast.show();
-    }
-
 }
