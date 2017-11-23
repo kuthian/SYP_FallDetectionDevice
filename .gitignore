@@ -1,2 +1,7 @@
 
 Bluetooth/Bluetooth_test/Bluetooth_test.ino
+*.xml
+FallCompanionApp/app/src/main/res/values/strings.xml
+FallCompanionApp/app/src/main/res/layout/device_adapter_view.xml
+FallCompanionApp/app/src/main/res/layout/activity_main.xml
+FallCompanionApp/app/src/main/res/layout/activity_main.xml

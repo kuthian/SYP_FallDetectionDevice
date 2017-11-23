@@ -4,11 +4,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
 public class EmergencyContacts extends AppCompatActivity {
+
+    private static final String TAG = "EMERGENCYCONTACTS";
 
     static public SharedPreferences prefs;
 
@@ -22,15 +25,15 @@ public class EmergencyContacts extends AppCompatActivity {
     private EditText ContactName3;
     private EditText ContactName4;
 
-    private String SavedContactNumber1;
-    private String SavedContactNumber2;
-    private String SavedContactNumber3;
-    private String SavedContactNumber4;
+    private String SavedContactNumber1 = "com.example.app.savedcontactnumber1";
+    private String SavedContactNumber2 = "com.example.app.savedcontactnumber2";
+    private String SavedContactNumber3 = "com.example.app.savedcontactnumber3";
+    private String SavedContactNumber4 = "com.example.app.savedcontactnumber4";
 
-    private String SavedContactName1;
-    private String SavedContactName2;
-    private String SavedContactName3;
-    private String SavedContactName4;
+    private String SavedContactName1 = "com.example.app.savedcontactname1";
+    private String SavedContactName2 = "com.example.app.savedcontactname2";
+    private String SavedContactName3 = "com.example.app.savedcontactname3";;
+    private String SavedContactName4 = "com.example.app.savedcontactname4";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,23 +52,13 @@ public class EmergencyContacts extends AppCompatActivity {
 
         prefs = this.getSharedPreferences("com.example.app", Context.MODE_PRIVATE);
 
-        SavedContactNumber1 = "com.example.app.savedcontactnumber1";
-        SavedContactNumber2 = "com.example.app.savedcontactnumber2";
-        SavedContactNumber3 = "com.example.app.savedcontactnumber3";
-        SavedContactNumber4 = "com.example.app.savedcontactnumber4";
-
-        SavedContactName1 = "com.example.app.savedcontactname1";
-        SavedContactName2 = "com.example.app.savedcontactname2";
-        SavedContactName3 = "com.example.app.savedcontactname3";
-        SavedContactName4 = "com.example.app.savedcontactname4";
-
         SetContactText();
     }
 
     public void SaveContacts(View view)
     {
         SaveContactValuesToPrefs();
-        ShowSavedToast();
+        Utils.ShowToast(getApplicationContext(),"Saved");
     }
 
     private void SetContactText()
@@ -79,15 +72,6 @@ public class EmergencyContacts extends AppCompatActivity {
         ContactName2.setText(prefs.getString(SavedContactName2, "Contact Name #2"));
         ContactName3.setText(prefs.getString(SavedContactName3, "Contact Name #3"));
         ContactName4.setText(prefs.getString(SavedContactName4, "Contact Name #4"));
-    }
-
-    private void ShowSavedToast()
-    {
-        String SaveText = "Saved";
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, SaveText, duration);
-        toast.show();
     }
 
     private void SaveContactValuesToPrefs()

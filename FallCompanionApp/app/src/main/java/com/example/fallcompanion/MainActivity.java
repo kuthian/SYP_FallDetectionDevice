@@ -11,13 +11,12 @@ import android.location.Location;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
 import android.support.v7.app.NotificationCompat.Builder;
 import android.telephony.SmsManager;
@@ -25,58 +24,62 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Timer;
 
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MAIN";
 
-    public String longitude = "0";
-    public String latitude = "0";
-    public String FallTime = "0";
-
     private FusedLocationProviderClient mFusedLocationClient;
     private SharedPreferences prefs;
-    public String SavedPhoneNumber1;
-    public String SavedPhoneNumber2;
-    public String SavedPhoneNumber3;
-    public String SavedPhoneNumber4;
+    private Ringtone defaultRingtone;
 
+    //SharedPreferences Strings
+    private String SavedContactNumber1 = "com.example.app.savedcontactnumber1";
 
-    public String SavedContactNumber1;
-    public String SavedContactNumber2;
-    public String SavedContactNumber3;
-    public String SavedContactNumber4;
+    private String SavedContactNumber2 = "com.example.app.savedcontactnumber2";
 
-    private String SavedSeekBarValue;
-    private String SavedOnOrOFf;
+    private String SavedContactNumber3 = "com.example.app.savedcontactnumber3";
+
+    private String SavedContactNumber4 = "com.example.app.savedcontactnumber4";
+
+    private String SavedSeekBarValue = "com.example.app.savedseekbarvalue";
+
+    private String SavedOnOrOFf = "com.example.app.savedonoroff";
+
+    //Phone number strings
+    private String SavedPhoneNumber1;
+    private String SavedPhoneNumber2;
+    private String SavedPhoneNumber3;
+    private String SavedPhoneNumber4;
+
     private Boolean DefaultSavedOnOrOff = false;
+    private String DefaultCountdownEventTime = "30";
+    private String longitude = "0";
+    private String latitude = "0";
+    private String FallTime = "0";
     private int CountdownEventTime;
     private Boolean OnOrOffState;
-
-    private String DefaultCountdownEventTime = "30";
-
-    public Ringtone defaultRingtone;
 
     Vibrator smsVib;
 
     CountDownTimer Timer;
     Timer timer;
-    TimerTask task;
-    final Handler handler = new Handler();
 
     private TextView TimerView;
-    private Button EventButton;
+    public Button EventButton;
     private Button CancelEventButton;
+
+    //Bluetooth
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,14 +89,6 @@ public class MainActivity extends AppCompatActivity {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         prefs = this.getSharedPreferences("com.example.app", Context.MODE_PRIVATE);
 
-        SavedContactNumber1 = "com.example.app.savedcontactnumber1";
-        SavedContactNumber2 = "com.example.app.savedcontactnumber2";
-        SavedContactNumber3 = "com.example.app.savedcontactnumber3";
-        SavedContactNumber4 = "com.example.app.savedcontactnumber4";
-
-        SavedSeekBarValue = "com.example.app.savedseekbarvalue";
-        SavedOnOrOFf = "com.example.app.savedonoroff";
-
         CountdownEventTime = Integer.parseInt(prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime));
         OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
 
@@ -101,139 +96,128 @@ public class MainActivity extends AppCompatActivity {
         EventButton = (Button) findViewById(R.id.EventButton);
         CancelEventButton = (Button) findViewById(R.id.CancelButton);
 
-        if(!OnOrOffState)
-        {
+        if (!OnOrOffState) {
             EventButton.setEnabled(false);
             EventButton.setClickable(false);
-        }
-        else
-        {
+        } else {
             EventButton.setEnabled(true);
             EventButton.setClickable(true);
         }
 
         CancelEventButton.setEnabled(false);
         CancelEventButton.setClickable(false);
-
     }
+
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
 
         CountdownEventTime = Integer.parseInt(prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime));
         OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
 
-        if(!OnOrOffState)
-        {
+        if (!OnOrOffState) {
             EventButton.setEnabled(false);
             EventButton.setClickable(false);
-        }
-        else
-        {
+        } else {
             EventButton.setEnabled(true);
             EventButton.setClickable(true);
         }
+
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            finish();
+        }
+
+        Log.d(TAG, "onResumeTest");
     }
-    protected void TriggerEventCountdown(View view)
-    {
+
+    protected void TriggerEventCountdown(View view) {
         Log.d(TAG, "TriggerEventCountdown: Begin");
 
-        if (EventButton.isEnabled() && OnOrOffState)
-        {
+        if (EventButton.isEnabled() && OnOrOffState) {
             EventButton.setEnabled(false);
             EventButton.setClickable(false);
 
             CancelEventButton.setEnabled(true);
             CancelEventButton.setClickable(true);
-            try
-            {
+            try {
                 GetDate();
                 GetPhoneNumbers();
                 CreateNotification();
 
                 StartVibrate(CountdownEventTime + 1);
                 StartTimer(CountdownEventTime + 1);
-            }
-            catch(Exception e)
-            {
-                ShowToast("An Unexpected Error Occurred");
+            } catch (Exception e) {
+                Log.d(TAG, "An Unexpected Error Occurred",e);
+                Utils.ShowToast(getApplicationContext(),"An Unexpected Error Occurred");
             }
         }
 
         Log.d(TAG, "TriggerEventCountdown: End");
     }
 
-    public void StartEventTasks()
-    {
+    public void StartEventTasks() {
         StartAlarm();
         SendGpsSms();
     }
-    public void SendSimpleSMS(String PhoneNumber, String LocationText) throws InterruptedException
-    {
-        if (PhoneNumber != "-" || PhoneNumber != null || PhoneNumber != " "|| PhoneNumber != "")
-        {
-            android.telephony.SmsManager sms = SmsManager.getDefault();
-            sms.sendTextMessage("+1 " + PhoneNumber, null, LocationText, null, null);
-            ShowToast("Text sent to " + PhoneNumber);
+
+    public void SendSimpleSMS(String PhoneNumber, String LocationText) throws InterruptedException {
+        Log.d(TAG, "SendSimpleSms: Begin");
+        if (PhoneNumber != null) {
+            if (PhoneNumber.length() == 10) {
+                android.telephony.SmsManager sms = SmsManager.getDefault();
+                sms.sendTextMessage("+1 " + PhoneNumber, null, LocationText, null, null);
+                Log.d(TAG, "SendSimpleSms: Text sent to " + PhoneNumber);
+                Utils.ShowToast(getApplicationContext(), "Text sent to " + PhoneNumber);
+            } else {
+                Log.d(TAG, "No Message Sent to:" + PhoneNumber);
+            }
+
+        } else {
+            Log.d(TAG, "SendSimpleSms: No Message Sent");
         }
-        else
-        {
-            ShowToast("No Message Sent");
-        }
+
+        Log.d(TAG, "SendSimpleSms: End");
     }
 
-    public void SendGpsSms()
-    {
+    public void SendGpsSms() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             mFusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                         @Override
                         public void onSuccess(Location location) {
                             // Got last known location. In some rare situations this can be null.
-                            if (location != null)
-                            {
+                            if (location != null) {
                                 latitude = Double.toString(location.getLatitude());
                                 longitude = Double.toString(location.getLatitude());
                                 //ShowToast("Fix: " + latitude + "," + longitude);
-                            }
-                            else
-                            {
+                            } else {
                                 latitude = "Zonk";
                                 longitude = "Zonk";
                             }
                         }
                     });
-        }
-        else
-        {
+        } else {
             mFusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, new OnSuccessListener<Location>() {
 
                         @Override
                         public void onSuccess(Location location) {
                             // Got last known location. In some rare situations this can be null.
-                            if (location != null)
-                            {
+                            if (location != null) {
                                 latitude = Double.toString(location.getLatitude());
                                 longitude = Double.toString(location.getLongitude());
-                                if (latitude != "0" && longitude != "0")
-                                {
-                                    try
-                                    {
+                                if (latitude != "0" && longitude != "0") {
+                                    try {
                                         String FallText = "A fall has been detected at https://maps.google.com/?q=+" + latitude + "," + longitude + " . The fall occurred on " + FallTime;
                                         SendSimpleSMS(SavedPhoneNumber1, FallText);
                                         SendSimpleSMS(SavedPhoneNumber2, FallText);
                                         SendSimpleSMS(SavedPhoneNumber3, FallText);
                                         SendSimpleSMS(SavedPhoneNumber4, FallText);
-                                    }
-                                    catch (InterruptedException e)
-                                    {
+                                    } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 latitude = "Zonk";
                                 longitude = "Zonk";
                             }
@@ -242,22 +226,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void GetDate()
-    {
+    public void GetDate() {
         Date CurrentTime = Calendar.getInstance().getTime();
         FallTime = CurrentTime.toString();
     }
 
-    private void GetPhoneNumbers()
-    {
+    private void GetPhoneNumbers() {
         SavedPhoneNumber1 = prefs.getString(SavedContactNumber1, "-");
         SavedPhoneNumber2 = prefs.getString(SavedContactNumber2, "-");
         SavedPhoneNumber3 = prefs.getString(SavedContactNumber3, "-");
         SavedPhoneNumber4 = prefs.getString(SavedContactNumber4, "-");
     }
 
-    public void CreateNotification()
-    {
+    public void CreateNotification() {
         Log.d(TAG, "CreateNotification: Begin");
 
         NotificationCompat.Builder mBuilder =
@@ -289,8 +270,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "CreateNotification: End");
     }
 
-    public void StartAlarm()
-    {
+    public void StartAlarm() {
         Log.d(TAG, "StartAlarm: Begin");
         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
@@ -303,11 +283,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "StartAlarm: End");
     }
 
-    public void EndAlarm()
-    {
+    public void EndAlarm() {
         Log.d(TAG, "EndAlarm: Begin");
-        if(defaultRingtone != null)
-        {
+        if (defaultRingtone != null) {
             if (defaultRingtone.isPlaying()) {
                 Log.d(TAG, "EndAlarm: Stopping Alarm");
                 defaultRingtone.stop();
@@ -320,40 +298,30 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "EndAlarm: End");
     }
 
-    public void ShowToast(String ToastMessage)
-    {
-        Log.d(TAG, "ShowToast: Begin");
 
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, ToastMessage, duration);
-        toast.show();
-
-        Log.d(TAG, "ShowToast: End");
-    }
-
-    public void StartVibrate(int VibrateDuration)
-    {
+    public void StartVibrate(int VibrateDuration) {
         Log.d(TAG, "StartVibrate: Begin, Vibrating for " + VibrateDuration + " Seconds.");
         smsVib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        smsVib.vibrate(VibrateDuration*1000);
+        smsVib.vibrate(new long[]{0, 500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500}, 10);
+
+        //smsVib.vibrate(15000);
         Log.d(TAG, "StartVibrate: End");
     }
 
-    public void EndVibrate()
-    {
-        if (smsVib != null)
-        {
+    public void EndVibrate() {
+        Log.d(TAG, "EndVibrate: Begin");
+        if (smsVib != null) {
+            Log.d(TAG, "EndVibrate: Vibrate Ended");
             smsVib.cancel();
             smsVib = null;
         }
-
+        Log.d(TAG, "EndVibrate: End");
     }
-    public void StartTimer(int TimerTime)
-    {
+
+    public void StartTimer(int TimerTime) {
         Log.d(TAG, "StartTimer: Begin");
 
-        Timer = new CountDownTimer(TimerTime*1000, 1000) {
+        Timer = new CountDownTimer(TimerTime * 1000, 1000) {
 
             public void onTick(long millisUntilFinished) {
                 TimerView.setText("Event Timer: " + millisUntilFinished / 1000);
@@ -361,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
 
             public void onFinish() {
 
-                ShowToast("Alarm Raised");
+                Utils.ShowToast(getApplicationContext(),"Alarm Raised");
                 StartEventTasks();
                 TimerView.setText("");
             }
@@ -369,40 +337,34 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "StartTimer: End");
     }
-    public void EndTimer()
-    {
+
+    public void EndTimer() {
         Log.d(TAG, "EndTimer: Begin");
-        if (Timer !=null)
-        {
+        if (Timer != null) {
             Timer.cancel();
             timer = null;
-            ShowToast("Event Cancelled");
+            Utils.ShowToast(getApplicationContext(),"Event Cancelled");
             TimerView.setText("");
         }
-        Log.d(TAG, "StartTimer: End");
+        Log.d(TAG, "EndTimer: End");
     }
 
-    public void Cancel(View view)
-    {
+    public void Cancel(View view) {
         Log.d(TAG, "Cancel: Begin");
         //StopTimerTask();
-        try
-        {
+        try {
             EndTimer();
             EndVibrate();
             EndAlarm();
-            ShowToast("Event Cancelled");
-        }
-        catch(Exception e)
-        {
-            ShowToast("Error During Canceling");
+            Utils.ShowToast(getApplicationContext(),"Event Cancelled");
+        } catch (Exception e) {
+            Utils.ShowToast(getApplicationContext(),"Error During Canceling");
         }
 
         EventButton.setClickable(true);
         EventButton.setEnabled(true);
 
-        if (EventButton.isEnabled() && EventButton.isClickable())
-        {
+        if (EventButton.isEnabled() && EventButton.isClickable()) {
             CancelEventButton.setEnabled(false);
             CancelEventButton.setClickable(false);
         }
@@ -410,30 +372,29 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Cancel: End");
     }
 
-    public void OpenBluetooth(View view)
-    {
+    public void OpenBluetooth(View view) {
 
         Log.d(TAG, "OpenBluetooth: Begin");
         Intent intent = new Intent(this, Bluetooth.class);
         startActivity(intent);
         Log.d(TAG, "OpenBluetooth: End");
     }
-    public void OpenEmergencyContacts(View view)
-    {
+
+    public void OpenEmergencyContacts(View view) {
         Log.d(TAG, "OpenEmergencyContacts: Begin");
         Intent intent = new Intent(this, EmergencyContacts.class);
         startActivity(intent);
         Log.d(TAG, "OpenEmergencyContacts: End");
     }
-    public void OpenFallData(View view)
-    {
+
+    public void OpenFallData(View view) {
         Log.d(TAG, "OpenFallData: Begin");
         Intent intent = new Intent(this, FallData.class);
         startActivity(intent);
         Log.d(TAG, "OpenFallData: End");
     }
-    public void OpenAlertSettings(View view)
-    {
+
+    public void OpenAlertSettings(View view) {
         Log.d(TAG, "OpenAlertSettings: Begin");
         Intent intent = new Intent(this, AlertSettings.class);
         startActivity(intent);
@@ -441,4 +402,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
 }
+
+
