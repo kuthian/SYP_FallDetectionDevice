@@ -33,9 +33,13 @@
         <activity android:name="com.example.fallcompanion.AlertSettings"
             android:parentActivityName="com.example.fallcompanion.MainActivity" />
         <activity android:name="com.example.fallcompanion.FallData"
-            android:parentActivityName="com.example.fallcompanion.MainActivity"  >
+            android:parentActivityName="com.example.fallcompanion.MainActivity"  />
+            <activity
+                android:name="com.example.fallcompanion.client.ClientActivity"
+                android:parentActivityName="com.example.fallcompanion.Bluetooth"
+                android:label="@string/bluetooth_client"
+                android:windowSoftInputMode="stateHidden"/>
 
-        </activity>
     </application>
 
 </manifest>
