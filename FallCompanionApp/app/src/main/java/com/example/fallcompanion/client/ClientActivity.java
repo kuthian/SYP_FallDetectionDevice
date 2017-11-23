@@ -20,6 +20,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -40,6 +41,7 @@ import java.util.Map;
 import com.example.fallcompanion.MainActivity;
 
 import static com.example.fallcompanion.Constants.SCAN_PERIOD;
+import static com.example.fallcompanion.Constants.SERVICE_UUID;
 
 public class ClientActivity extends AppCompatActivity {
 
@@ -96,6 +98,13 @@ public class ClientActivity extends AppCompatActivity {
             finish();
         }
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        disconnectGattServer();
+
+    }
 
     // Scanning
 
@@ -121,6 +130,7 @@ public class ClientActivity extends AppCompatActivity {
 
                 //.setServiceUuid(new ParcelUuid(SERVICE_UUID))
         ScanFilter scanFilter = new ScanFilter.Builder()
+                .setServiceUuid(new ParcelUuid(SERVICE_UUID))
                 .build();
         List<ScanFilter> filters = new ArrayList<>();
         filters.add(scanFilter);

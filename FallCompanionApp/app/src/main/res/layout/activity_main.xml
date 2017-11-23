@@ -7,114 +7,80 @@
     android:background="@color/HealthyBlue"
     tools:context="com.example.fallcompanion.MainActivity">
 
-    <Button
-        android:id="@+id/EventButton"
-        android:background="@color/White"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Send SMS"
-        android:onClick="TriggerEventCountdown"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="50dp"
-        android:layout_marginLeft="150dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginRight="150dp"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.0" />
-
-    <Button
-        android:id="@+id/bluetoothButton"
-        android:layout_width="100dp"
-        android:layout_height="60dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginTop="110dp"
-        android:background="@color/White"
-        android:onClick="OpenBluetooth"
-        android:text="Bluetooth"
-        android:textAlignment="center"
-        app:layout_constraintLeft_toLeftOf="@+id/fallDataButton"
-        app:layout_constraintTop_toBottomOf="@+id/EventButton" />
-
-    <Button
-        android:id="@+id/emergencyContactsButton"
-        android:layout_width="100dp"
-        android:layout_height="60dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginTop="0dp"
-        android:background="@color/White"
-        android:onClick="OpenEmergencyContacts"
-        android:text="Emergency\nContacts"
-        android:textAlignment="center"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toRightOf="@+id/bluetoothButton"
-        app:layout_constraintRight_toRightOf="@+id/alertSettingsButton"
-        app:layout_constraintTop_toTopOf="@+id/bluetoothButton" />
-
-    <Button
-        android:id="@+id/fallDataButton"
-        android:layout_width="100dp"
-        android:layout_height="60dp"
-        android:layout_marginLeft="100dp"
-        android:layout_marginTop="0dp"
-        android:background="@color/White"
-        android:onClick="OpenFallData"
-        android:text="Fall Data"
-        android:textAlignment="center"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bluetoothButton"
-        android:layout_marginRight="50dp"
-        app:layout_constraintRight_toRightOf="@+id/EventButton" />
-
-    <Button
+    <ImageButton
         android:id="@+id/alertSettingsButton"
-        android:layout_width="100dp"
-        android:layout_height="60dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginTop="0dp"
-        android:background="@color/White"
-        android:onClick="OpenAlertSettings"
-        android:text="Alert\nSettings"
-        android:textAlignment="center"
-        app:layout_constraintLeft_toRightOf="@+id/fallDataButton"
-        app:layout_constraintTop_toBottomOf="@+id/emergencyContactsButton" />
-
-    <Button
-        android:id="@+id/CancelButton"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="110dp"
-        android:background="@color/White"
-        android:text="Cancel"
-        android:onClick="Cancel"
-        app:layout_constraintEnd_toEndOf="@+id/EventButton"
-        app:layout_constraintStart_toStartOf="@+id/EventButton"
-        app:layout_constraintTop_toBottomOf="@+id/alertSettingsButton" />
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="24dp"
+        android:background="@null"
+        android:onClick="OpenAlertSettings"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_settings_white_24dp" />
+
+    <ImageButton
+        android:id="@+id/bluetoothButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="24dp"
+        android:background="@null"
+        android:onClick="OpenBluetooth"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/emergencyContactsButton"
+        app:srcCompat="@drawable/ic_bluetooth_white_24dp" />
+
+    <ImageButton
+        android:id="@+id/emergencyContactsButton"
+        android:layout_width="52dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="24dp"
+        android:background="@null"
+        android:onClick="OpenEmergencyContacts"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/alertSettingsButton"
+        app:srcCompat="@drawable/ic_contacts_white_24dp" />
 
     <TextView
         android:id="@+id/TimerView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="17dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="48dp"
-        android:textColor="@color/Ivory"
-        app:layout_constraintEnd_toEndOf="@+id/CancelButton"
-        app:layout_constraintStart_toStartOf="@+id/CancelButton"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/DarkIvory"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/CancelButton" />
 
     <Button
-        android:id="@+id/button2"
-        android:layout_width="wrap_content"
+        android:id="@+id/ConnectButton"
+        android:layout_width="160dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="28dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:onClick="testBTbutton"
-        android:text="Button"
+        android:backgroundTint="@color/Ivory"
+        android:onClick="BLEconnect"
+        android:text="Connect"
         app:layout_constraintBottom_toTopOf="@+id/CancelButton"
         app:layout_constraintEnd_toEndOf="@+id/CancelButton"
-        app:layout_constraintHorizontal_bias="0.428"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="@+id/CancelButton" />
+
+    <Button
+        android:id="@+id/CancelButton"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="400dp"
+        android:backgroundTint="@color/Ivory"
+        android:onClick="Cancel"
+        android:text="Cancel Event"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />/>
 
 </android.support.constraint.ConstraintLayout>
