@@ -36,7 +36,7 @@
             android:parentActivityName="com.example.fallcompanion.MainActivity"  />
             <activity
                 android:name="com.example.fallcompanion.client.ClientActivity"
-                android:parentActivityName="com.example.fallcompanion.Bluetooth"
+                android:parentActivityName="com.example.fallcompanion.MainActivity"
                 android:label="@string/bluetooth_client"
                 android:windowSoftInputMode="stateHidden"/>
 
