@@ -24,7 +24,7 @@ float dxyz;
 int i =1;
 int N = 100;
 
-double now = 0;// Set up variable for the timer
+unsigned long int now = 0;// Set up variable for the timer
 float threshold = 2.0;
 
 SoftwareSerial BT(5, 6);        // Init Blutooth Serial Rx Pin 5, Tx Pin 6
@@ -91,6 +91,8 @@ void loop()
       float vyz = magfunction2(myIMU.ay,myIMU.az);
       float vxyz = magfunction3(myIMU.ax,myIMU.ay,myIMU.az);
 
+      int alert = 0;
+
       if(i>100)
       {
         
@@ -124,71 +126,100 @@ void loop()
         float dxyz = delta(vxyz, run_vxyz);
 
 
-//        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
-//        {
-////          Serial.print("\n");
-////          Serial.print("ALERT");
-////          Serial.print("\n");
-////          BT.print("\n");
-////          BT.print("ALERT");
-////          BT.print("\n");
-//        }
+        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
+        {
+//          Serial.print("\n");
+//          Serial.print("ALERT");
+//          Serial.print("\n");
+//          BT.print("\n");
+//          BT.print("ALERT");
+//          BT.print("\n");
+          alert = 1;
+        }
+        else
+        {
+          alert = 0;
+        }
 
         myIMU.updateTime();
 
-      Serial.print(now);
-      Serial.print("\t");
-      Serial.print("\t");
-      Serial.print(run_vx);
-      Serial.print("\t");
-      Serial.print(run_vy);
-      Serial.print("\t");
-      Serial.print(run_vz);
-      Serial.print("\t");
-      Serial.print(run_vxy);
-      Serial.print("\t");
-      Serial.print(run_vxz);
-      Serial.print("\t");
-      Serial.print(run_vyz);
-      Serial.print("\t");
-      Serial.print(run_vxyz);
-      Serial.print("\n");
+        int ivx = round(1000*vx);
+        int ivy = round(1000*vy);
+        int ivz = round(1000*vz);
+//        int ivxy = round(1000*vxy);
+//        int ivxz = round(1000*vxz);
+//        int ivyz = round(1000*vyz);
+//        int ivxyz = round(1000*vxyz);
         
-        
-        BT.print(now);
-        BT.print("\t");
-        BT.print("\t");
-        BT.print("\t");
-        BT.print("\t");
-        BT.print(vx);
-        BT.print("\t");
-        BT.print(vy);
-        BT.print("\t");
-        BT.print(vz);
-        BT.print("\t");
-        BT.print(vxy);
-        BT.print("\t");
-        BT.print(vxz);
-        BT.print("\t");
-        BT.print(vyz);
-        BT.print("\t");
-        BT.print(vxyz);
+        int idx = round(1000*dx);
+        int idy = round(1000*dy);
+        int idz = round(1000*dz);
+//        int idxy = round(1000*dxy);
+//        int idxz = round(1000*dxz);
+//        int idyz = round(1000*dyz);
+//        int idxyz = round(1000*dxyz);
 
-        BT.print("\t");
-        BT.print(dx);
-        BT.print("\t");
-        BT.print(dy);
-        BT.print("\t");
-        BT.print(dz);
-        BT.print("\t");
-        BT.print(dxy);
-        BT.print("\t");
-        BT.print(dxz);
-        BT.print("\t");
-        BT.print(dyz);
-        BT.print("\t");
-        BT.print(dxyz);
-        BT.print("\n");
+        char buffer[60];
+        int n;
+        n = sprintf (buffer,"%lu %d %d  %d  %d",now,ivx,ivy,ivz,alert);
+        BT.println(buffer);
+//        BT.write("\n");
+//        %d  %d  %d  %d  %d  %d  %d  %d  %d  %d  %d
+//        ,ivxy,ivxz,ivyz,ivxyz,idx,idy,idz,idxy,idxz,idyz,idxyz
+   
+//      Serial.print(now);
+//      Serial.print("\t");
+//      Serial.print("\t");
+//      Serial.print(run_vx);
+//      Serial.print("\t");
+//      Serial.print(run_vy);
+//      Serial.print("\t");
+//      Serial.print(run_vz);
+//      Serial.print("\t");
+//      Serial.print(run_vxy);
+//      Serial.print("\t");
+//      Serial.print(run_vxz);
+//      Serial.print("\t");
+//      Serial.print(run_vyz);
+//      Serial.print("\t");
+//      Serial.print(run_vxyz);
+//      Serial.print("\n");
+        
+        
+//        BT.print(now);
+//        BT.print("\t");
+//        BT.print("\t");
+//        BT.print("\t");
+//        BT.print("\t");
+//        BT.print(vx);
+//        BT.print("\t");
+//        BT.print(vy);
+//        BT.print("\t");
+//        BT.print(vz);
+//        BT.print("\t");
+//        BT.print(vxy);
+//        BT.print("\t");
+//        BT.print(vxz);
+//        BT.print("\t");
+//        BT.print(vyz);
+//        BT.print("\t");
+//        BT.print(vxyz);
+//
+//        BT.print("\t");
+//        BT.print(dx);
+//        BT.print("\t");
+//        BT.print(dy);
+//        BT.print("\t");
+//        BT.print(dz);
+//        BT.print("\t");
+//        BT.print(dxy);
+//        BT.print("\t");
+//        BT.print(dxz);
+//        BT.print("\t");
+//        BT.print(dyz);
+//        BT.print("\t");
+//        BT.print(dxyz);
+//        BT.print("\n");
         
       }
 
@@ -204,23 +235,23 @@ void loop()
 
         i++;
 
-      Serial.print(now);
-      Serial.print("\t");
-      Serial.print("\t");
-      Serial.print(run_vx);
-      Serial.print("\t");
-      Serial.print(run_vy);
-      Serial.print("\t");
-      Serial.print(run_vz);
-      Serial.print("\t");
-      Serial.print(run_vxy);
-      Serial.print("\t");
-      Serial.print(run_vxz);
-      Serial.print("\t");
-      Serial.print(run_vyz);
-      Serial.print("\t");
-      Serial.print(run_vxyz);
-      Serial.print("\n");
+//      Serial.print(now);
+//      Serial.print("\t");
+//      Serial.print("\t");
+//      Serial.print(run_vx);
+//      Serial.print("\t");
+//      Serial.print(run_vy);
+//      Serial.print("\t");
+//      Serial.print(run_vz);
+//      Serial.print("\t");
+//      Serial.print(run_vxy);
+//      Serial.print("\t");
+//      Serial.print(run_vxz);
+//      Serial.print("\t");
+//      Serial.print(run_vyz);
+//      Serial.print("\t");
+//      Serial.print(run_vxyz);
+//      Serial.print("\n");
       }
       
       //myIMU.updateTime();
