@@ -23,6 +23,7 @@ float dxyz;
 
 int i =1;
 int N = 100;
+int flag = 0;
 
 double now = 0;// Set up variable for the timer
 float threshold = 2.0;
@@ -33,6 +34,7 @@ void setup()
 {
   int intPin = 2; //These can be changed, 2 and 3 are the Arduinos ext int pins
   
+  pinMode(A0, INPUT);
   pinMode(9, OUTPUT);           // Needed for SoftSerial not sure why
   BT.begin(38400);              // set the data rate for the SoftwareSerial port
     
@@ -123,16 +125,26 @@ void loop()
         float dyz = delta(vyz, run_vyz);
         float dxyz = delta(vxyz, run_vxyz);
 
+        if(flag = 0)
+        {
+          int batt = analogRead(A0);
+          float voltage = batt * (4.2/1023);
+          if(voltage < 3.6)
+          {
+            flag = 1;
+            BT.print("BATTERY LOW");
+          }
+        }
 
-//        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
-//        {
-////          Serial.print("\n");
-////          Serial.print("ALERT");
-////          Serial.print("\n");
-////          BT.print("\n");
-////          BT.print("ALERT");
-////          BT.print("\n");
-//        }
+        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
+        {
+          Serial.print("\n");
+          Serial.print("ALERT");
+          Serial.print("\n");
+          BT.print("\n");
+          BT.print("ALERT");
+          BT.print("\n");
+        }
 
         myIMU.updateTime();
 
