@@ -31,12 +31,12 @@ float threshold = 2.0;
 void setup()
 {
   
-  //setting up pin change interrupt
-  //pcint19 is pin 3
-  PCICR |= (1<<PCIE2); //enable interrupts [23:16]
-  PCMSK2 |= (1<<PCINT19); //enable pin change interrupt on pin 3
-//  //pinMode(3, INPUT);
-//  //digitalWrite(3, HIGH);
+//  //setting up pin change interrupt
+//  //pcint19 is pin 3
+//  PCICR |= (1<<PCIE2); //enable interrupts [23:16]
+//  PCMSK2 |= (1<<PCINT19); //enable pin change interrupt on pin 3
+////  //pinMode(3, INPUT);
+////  //digitalWrite(3, HIGH);
   
   int intPin = 2; //These can be changed, 2 and 3 are the Arduinos ext int pins
 //  const byte recal = 3;
@@ -182,21 +182,21 @@ float delta(float vx, float run_vx)
 }
 
 //Pin Interrupt on 3
-ISR(PCINT19__vect)
-{
-  byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);   // This is checking the MPU addess default is 71
-  if (c == 0x71)
-  {
-    //uint8_t SmpRtDiv = 0x09;        // This is the number the fundamental freq of MPU sampler is divided by +1 the default fund freq is 1kHz IE for a 100Hz refresh SmpRtDiv = 9
-    Serial.println("MPU9250 is online again...");
-    myIMU.MPU9250SelfTest(myIMU.SelfTest); //Check Biases
-    //myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias); //Load Biases into registers
-    myIMU.initMPU9250();
-    //myIMU.writeByte(MPU9250_ADDRESS, SMPLRT_DIV, SmpRtDiv); // Sets the MPU sample rate to 100Hz
-    myIMU.getAres(); // Sets the DAC resolution
-    Serial.print("MPU has been re-initialized.");
-  }
-}
+//ISR(PCINT19__vect)
+//{
+//  byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);   // This is checking the MPU addess default is 71
+//  if (c == 0x71)
+//  {
+//    //uint8_t SmpRtDiv = 0x09;        // This is the number the fundamental freq of MPU sampler is divided by +1 the default fund freq is 1kHz IE for a 100Hz refresh SmpRtDiv = 9
+//    Serial.println("MPU9250 is online again...");
+//    myIMU.MPU9250SelfTest(myIMU.SelfTest); //Check Biases
+//    //myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias); //Load Biases into registers
+//    myIMU.initMPU9250();
+//    //myIMU.writeByte(MPU9250_ADDRESS, SMPLRT_DIV, SmpRtDiv); // Sets the MPU sample rate to 100Hz
+//    myIMU.getAres(); // Sets the DAC resolution
+//    Serial.print("MPU has been re-initialized.");
+//  }
+//}
 
 //void reconfigure()
 //{
