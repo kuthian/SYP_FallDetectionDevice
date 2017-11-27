@@ -14,15 +14,15 @@ float run_vxz = 0;
 float run_vyz = 0;
 float run_vxyz = 0;
 
-float dx; 
-float dy;
-float dz;
-float dxy;
-float dxz;
-float dyz;
-float dxyz;
+float dx = 0; 
+float dy = 0;
+float dz = 0;
+float dxy = 0;
+float dxz = 0;
+float dyz = 0;
+float dxyz = 0;
 
-float vx
+float vx;
 float vy;
 float vz;
 float vxy;
@@ -34,6 +34,8 @@ int i = 1;
 int N = 100;
 int low_batt_flag = 0;
 int event_trigger_flag = 0;
+
+int LedPin = 13; // Pin 13 is the arduino pro mini LED pin
 
 unsigned long int now = 0; // Set up variable for the timer
 unsigned long int last_fall_time = 0; // var that holds time of last fall
@@ -47,20 +49,19 @@ AltSoftSerial BT;
 void setup()
 {
   int IntPin = 2; //These can be changed, 2 and 3 are the Arduinos ext int pins
-  int LedPin = 13; // Pin 13 is the arduino pro mini LED pin
   int SoftSerialPin = 9; 
   
   pinMode(A0, INPUT);
-  pinMode(IntPin, INPUT);       // Set up the interrupt pin
+  pinMode(IntPin, INPUT);           // Set up the interrupt pin
   pinMode(LedPin, OUTPUT);          // LED pin
-  pinMode(SoftSerialPin, OUTPUT);           // Needed for SoftSerial not sure why
+  pinMode(SoftSerialPin, OUTPUT);   // Needed for SoftSerial not sure why
 
 
   BT.begin(9600);               // set up bluetooth connection, start advertising
   Serial.begin(38400);          // set up Serial connection
   Wire.begin();                 // init I2C connection
   
-  digitalWrite(intPin, LOW);    // on digital write this pin is held low preventing interupt 
+  digitalWrite(IntPin, LOW);    // on digital write this pin is held low preventing interupt 
 
   // This is checking the MPU addess default is 71
   if (myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250) == 0x71)
@@ -81,7 +82,7 @@ void setup()
   else
   {
     Serial.print("Could not connect to MPU9250: 0x");
-    Serial.println(c, HEX);                          // Print address of MPU
+    Serial.println(myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250), HEX);                          // Print address of MPU
     while(1) ;                                       // Loop forever if communication doesn't happen
   }
 }
