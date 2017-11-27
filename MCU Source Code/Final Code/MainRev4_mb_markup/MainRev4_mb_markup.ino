@@ -33,34 +33,37 @@ float vxyz;
 int i = 1;
 int N = 100;
 int low_batt_flag = 0;
-int TWBR = 12;                    // 400 kbit/sec I2C speed
+int event_trigger_flag = 0;
 
-unsigned long int now = 0;// Set up variable for the timer
-float threshold = 3.8;
-float threshold2 = 5.5;
+unsigned long int now = 0; // Set up variable for the timer
+unsigned long int last_fall_time = 0; // var that holds time of last fall
+unsigned long int last_batt_check_time = 0; // var that holds time of last fall
 
+float threshold = 3.8; // threshold in G 
+float threshold2 = 5.5; // threshold in G
 
 AltSoftSerial BT;
 
-
 void setup()
 {
-  int intPin = 2; //These can be changed, 2 and 3 are the Arduinos ext int pins
+  int IntPin = 2; //These can be changed, 2 and 3 are the Arduinos ext int pins
+  int LedPin = 13; // Pin 13 is the arduino pro mini LED pin
+  int SoftSerialPin = 9; 
   
   pinMode(A0, INPUT);
-  pinMode(9, OUTPUT);           // Needed for SoftSerial not sure why
+  pinMode(IntPin, INPUT);       // Set up the interrupt pin
+  pinMode(LedPin, OUTPUT);          // LED pin
+  pinMode(SoftSerialPin, OUTPUT);           // Needed for SoftSerial not sure why
+
 
   BT.begin(9600);               // set up bluetooth connection, start advertising
   Serial.begin(38400);          // set up Serial connection
   Wire.begin();                 // init I2C connection
   
-  
-
-  pinMode(intPin, INPUT);       // Set up the interrupt pin
   digitalWrite(intPin, LOW);    // on digital write this pin is held low preventing interupt 
 
-  byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);   // This is checking the MPU addess default is 71
-  if (c == 0x71)
+  // This is checking the MPU addess default is 71
+  if (myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250) == 0x71)
   {
     uint8_t SmpRtDiv = 0x09;        // This is the number the fundamental freq of MPU sampler is divided by +1 the default fund freq is 1kHz IE for a 100Hz refresh SmpRtDiv = 9
     Serial.println("MPU9250 is online...");
@@ -84,13 +87,13 @@ void setup()
 }
 
 void loop()
-{   
-    
+{       
   // This loops until the the MPU Int data register goes high, This will go high only when every data register contains new data 
   if (myIMU.readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01)
   {  
       //Reading from MPU9250
-      now = millis();                                   // records how long the MPU has been running in milliseconds
+      now = millis(); 
+      // records how long the MPU has been running in milliseconds
       myIMU.readAccelData(myIMU.accelCount);            // Read the x/y/z adc values
       myIMU.getAres();                                  // Sets the DAC resolution
   
@@ -107,11 +110,9 @@ void loop()
       vyz = magfunction2(myIMU.ay,myIMU.az);
       vxyz = magfunction3(myIMU.ax,myIMU.ay,myIMU.az);
 
-      int alert = 0; //flag for fall detection
-
       if(i>100)
       {
-        
+        //first time over 100 samples are reached, obtain baseline average
         if(i == 101)
         {
           run_vx = run_vx/100;
@@ -141,7 +142,8 @@ void loop()
         dyz = delta(vyz, run_vyz);
         dxyz = delta(vxyz, run_vxyz);
 
-        if(low_batt_flag = 0)
+
+        if((low_batt_flag = 0) && ((now - last_batt_check_time) >= 10000))
         {
           int batt = analogRead(A0);
           float voltage = batt * (4.2/1023);
@@ -150,23 +152,34 @@ void loop()
             low_batt_flag = 1;
             BT.print("BATTERY LOW");
           }
+          last_batt_check_time = millis(); 
         }
 
-        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold2))
+        if ((now - last_fall_time) >= 10000)
         {
-          BT.print("ALERT");
-          alert = 1;
+          if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold2))
+          {
+            
+            event_trigger_flag = 1;
+            digitalWrite(LedPin, HIGH); 
+            BT.print("EventTrigger");
+            last_fall_time = millis(); 
+          }
+          else if (event_trigger_flag == 1)
+          {
+            event_trigger_flag = 0;
+            digitalWrite(LedPin, 0); 
+          }
+          else
+          {
+            event_trigger_flag = 0;
+          }
         }
-        else
-        {
-          alert = 0;
-        }
-
-        myIMU.updateTime();
-        
+              //myIMU.updateTime();      MIGHT NOT BE NEEDED LOL
       }
       else
       {
+        //first 100 samples will not have a moving average
         run_vx = run_vx + vx;
         run_vy = run_vy + vy;
         run_vz = run_vz + vz;
@@ -177,8 +190,7 @@ void loop()
 
         i++;
       }  
-
-}
+  }
 }
 
 float magfunction1(float one){
