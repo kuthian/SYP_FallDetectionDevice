@@ -134,19 +134,14 @@ public class MainActivity extends AppCompatActivity {
         prefs = this.getSharedPreferences("com.example.app", Context.MODE_PRIVATE);
 
         CountdownEventTime = Integer.parseInt(prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime));
+
         OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
 
         TimerView = (TextView) findViewById(R.id.TimerView);
         ConnectButton = (Button) findViewById(R.id.ConnectButton);
         CancelEventButton = (Button) findViewById(R.id.CancelButton);
 
-        if (mConnected) {
-            ConnectButton.setEnabled(false);
-            ConnectButton.setClickable(false);
-        } else {
-            ConnectButton.setEnabled(true);
-            ConnectButton.setClickable(true);
-        }
+        ConnectionButtonCheck();
 
         CancelEventButton.setEnabled(false);
         CancelEventButton.setClickable(false);
@@ -162,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message message) {
                 // This is where you do your work in the UI thread.
-                TriggerEventCountdown();
+                StartEventCountdown();
                 // Your worker tells you in the message what to do.
             }
         };
@@ -173,7 +168,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         CountdownEventTime = Integer.parseInt(prefs.getString(SavedSeekBarValue, DefaultCountdownEventTime));
-        OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
+
+        //OnOrOffState = prefs.getBoolean(SavedOnOrOFf, DefaultSavedOnOrOff);
 
         ConnectionButtonCheck();
 
@@ -192,31 +188,33 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    protected void TriggerEventCountdown() {
-        Log.d(TAG, "TriggerEventCountdown: Begin");
-        Log.d(TAG, "OnOrOffState: " + OnOrOffState);
+    protected void StartEventCountdown() {
+        Log.d(TAG, "StartEventCountdown: Begin");
+
         if (OnOrOffState) {
-
-            CancelEventButton.setEnabled(true);
-            CancelEventButton.setClickable(true);
-
-            try {
+            OnOrOffState = false;
+            try
+            {
                 GetDate();
                 GetPhoneNumbers();
                 CreateNotification();
-
                 StartVibrate(CountdownEventTime + 1);
-                StartTimer(CountdownEventTime + 1);
-            } catch (Exception e) {
+                StartCountdownTimer(CountdownEventTime + 1);
+
+                CancelEventButton.setEnabled(true);
+                CancelEventButton.setClickable(true);
+            }
+            catch (Exception e) {
                 Log.d(TAG, "An Unexpected Error Occurred",e);
                 Utils.ShowToast(getApplicationContext(),"An Unexpected Error Occurred");
             }
         }
 
-        Log.d(TAG, "TriggerEventCountdown: End");
+        Log.d(TAG, "StartEventCountdown: End");
     }
 
-    public void StartEventTasks() {
+    public void StartEvent()
+    {
         StartAlarm();
         SendGpsSms();
     }
@@ -257,7 +255,9 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     });
-        } else {
+        }
+        else
+        {
             mFusedLocation.getLastLocation()
                     .addOnSuccessListener(this, new OnSuccessListener<Location>() {
 
@@ -376,8 +376,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "EndVibrate: End");
     }
 
-    public void StartTimer(int TimerTime) {
-        Log.d(TAG, "StartTimer: Begin");
+    public void StartCountdownTimer(int TimerTime) {
+        Log.d(TAG, "StartCountdownTimer: Begin");
 
         Timer = new CountDownTimer(TimerTime * 1000, 1000) {
 
@@ -388,39 +388,42 @@ public class MainActivity extends AppCompatActivity {
             public void onFinish() {
 
                 Utils.ShowToast(getApplicationContext(),"Alarm Raised");
-                StartEventTasks();
+                StartEvent();
                 TimerView.setText("");
             }
         }.start();
 
-        Log.d(TAG, "StartTimer: End");
+        Log.d(TAG, "StartCountdownTimer: End");
     }
 
-    public void EndTimer() {
-        Log.d(TAG, "EndTimer: Begin");
+    public void EndCountdownTimer() {
+        Log.d(TAG, "EndCountdownTimer: Begin");
         if (Timer != null) {
             Timer.cancel();
             timer = null;
             Utils.ShowToast(getApplicationContext(),"Event Cancelled");
             TimerView.setText("");
+
         }
-        Log.d(TAG, "EndTimer: End");
+        Log.d(TAG, "EndCountdownTimer: End");
     }
 
-    public void Cancel(View view) {
-        Log.d(TAG, "Cancel: Begin");
+    public void CancelEvent(View view) {
+        Log.d(TAG, "CancelEvent: Begin");
         //StopTimerTask();
         try {
-            EndTimer();
+            EndCountdownTimer();
             EndVibrate();
             EndAlarm();
             Utils.ShowToast(getApplicationContext(),"Event Cancelled");
+
+            OnOrOffState = true;
             CancelEventButton.setEnabled(false);
             CancelEventButton.setClickable(false);
         } catch (Exception e) {
             Utils.ShowToast(getApplicationContext(),"Error During Canceling");
         }
-        Log.d(TAG, "Cancel: End");
+        Log.d(TAG, "CancelEvent: End");
     }
 
     public void ConnectionButtonCheck()
@@ -432,7 +435,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             ConnectButton.setEnabled(true);
             ConnectButton.setClickable(true);
-            Utils.ShowToast(getApplicationContext(),ExpectedDeviceName + " disconnected");
+            Utils.ShowToast(getApplicationContext(),ExpectedDeviceName + " not connected");
         }
     }
     public void OpenBluetooth(View view) {
@@ -728,7 +731,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (status != BluetoothGatt.GATT_SUCCESS) {
                 // handle anything not SUCCESS as failure
                 logError("Connection not GATT sucess status " + status);
-                disconnectGattServer();
+                //disconnectGattServer();
                 return;
             }
 
@@ -833,7 +836,7 @@ public class MainActivity extends AppCompatActivity {
                     {
                         public void run()
                         {
-                            TriggerEventCountdown();//Do your UI operations like dialog opening or Toast here
+                            StartEventCountdown();
                         }
                     });
                 }
