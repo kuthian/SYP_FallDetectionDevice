@@ -1,10 +1,10 @@
 #include <MPU9250.h>
 #include <quaternionFilters.h>
 #include "MPU9250.h"            // Sparkfun Library
-#include <AltSoftSerial.h>     // Bluetooth Serial Connection
+#include <SoftwareSerial.h>     // Bluetooth Serial Connection
+#include<AltSoftSerial.h>
 
 MPU9250 myIMU;                  // Define the I2C address for the MPU
-AltSoftSerial BT;
 
 float run_vx=0;
 float run_vy=0;
@@ -24,25 +24,23 @@ float dxyz;
 
 int i =1;
 int N = 100;
+int flag = 0;
 
-double now = 0;// Set up variable for the timer
-float threshold = 2.0;
+unsigned long int now = 0;// Set up variable for the timer
+float threshold = 3.8;
+float threshold2 = 5.5;
+
+SoftwareSerial BT(5, 6);        // Init Blutooth Serial Rx Pin 5, Tx Pin 6
+AltSoftSerial BT2;
 
 void setup()
 {
-  
-//  //setting up pin change interrupt
-//  //pcint19 is pin 3
-//  PCICR |= (1<<PCIE2); //enable interrupts [23:16]
-//  PCMSK2 |= (1<<PCINT19); //enable pin change interrupt on pin 3
-////  //pinMode(3, INPUT);
-////  //digitalWrite(3, HIGH);
-  
   int intPin = 2; //These can be changed, 2 and 3 are the Arduinos ext int pins
-//  const byte recal = 3;
-//  pinMode(recal, INPUT);
-//  attachInterrupt(digitalPinToInterrupt(recal), reconfigure, LOW);
+  
+  pinMode(A0, INPUT);
+  pinMode(9, OUTPUT);           // Needed for SoftSerial not sure why
   BT.begin(38400);              // set the data rate for the SoftwareSerial port
+  BT2.begin(9600);
     
   Wire.begin();                 // init I2C connection
   TWBR = 12;                    // 400 kbit/sec I2C speed
@@ -54,7 +52,7 @@ void setup()
   byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);   // This is checking the MPU addess default is 71
   if (c == 0x71)
   {
-    //uint8_t SmpRtDiv = 0x09;        // This is the number the fundamental freq of MPU sampler is divided by +1 the default fund freq is 1kHz IE for a 100Hz refresh SmpRtDiv = 9
+    uint8_t SmpRtDiv = 0x09;        // This is the number the fundamental freq of MPU sampler is divided by +1 the default fund freq is 1kHz IE for a 100Hz refresh SmpRtDiv = 9
     Serial.println("MPU9250 is online...");
     
     myIMU.MPU9250SelfTest(myIMU.SelfTest); //Check Biases
@@ -62,9 +60,8 @@ void setup()
     //myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias); //Load Biases into registers
 
     myIMU.initMPU9250();
-    //myIMU.writeByte(MPU9250_ADDRESS, SMPLRT_DIV, SmpRtDiv); // Sets the MPU sample rate to 100Hz
-
-    myIMU.getAres(); // Sets the DAC resolution
+    myIMU.writeByte(MPU9250_ADDRESS, SMPLRT_DIV, SmpRtDiv); // Sets the MPU sample rate to 100Hz
+        
     Serial.println("MPU9250 initialized...");
     
   }
@@ -74,8 +71,6 @@ void setup()
     Serial.println(c, HEX);                          // Print address of MPU
     while(1) ;                                       // Loop forever if communication doesn't happen
   }
-
-  sei(); //enable global interrupts
 }
 
 void loop()
@@ -87,6 +82,7 @@ void loop()
       //Reading from MPU9250
       now = millis();                                   // records how long the MPU has been running in milliseconds
       myIMU.readAccelData(myIMU.accelCount);            // Read the x/y/z adc values
+      myIMU.getAres();                                  // Sets the DAC resolution
   
       myIMU.ax = (float)myIMU.accelCount[0]*myIMU.aRes; // records MPU x axis  
       myIMU.ay = (float)myIMU.accelCount[1]*myIMU.aRes; // records MPU y axis
@@ -101,11 +97,12 @@ void loop()
       float vyz = magfunction2(myIMU.ay,myIMU.az);
       float vxyz = magfunction3(myIMU.ax,myIMU.ay,myIMU.az);
 
-      //moving average contains 100 samples
-      //can now start signal processing
+      int alert = 0; //flag for fall detection
+
       if(i>100)
       {
-        if(i==101)
+        
+        if(i == 101)
         {
           run_vx = run_vx/100;
           run_vy = run_vy/100;
@@ -134,14 +131,31 @@ void loop()
         float dyz = delta(vyz, run_vyz);
         float dxyz = delta(vxyz, run_vxyz);
 
-        //checks delta between newest sample and average and compares to threshold
-        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
+        if(flag = 0)
         {
-          BT.print("ALERT");
+          int batt = analogRead(A0);
+          float voltage = batt * (4.2/1023);
+          if(voltage < 3.6)
+          {
+            flag = 1;
+            BT.print("BATTERY LOW");
+          }
         }
+
+        if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold2))
+        {
+          BT2.print("ALERT");
+          alert = 1;
+        }
+        else
+        {
+          alert = 0;
+        }
+
+        myIMU.updateTime();
+        
       }
 
-      //populating moving average with first 100 samples
       else
       {
         run_vx = run_vx + vx;
@@ -153,12 +167,12 @@ void loop()
         run_vxyz = run_vxyz + vxyz;
 
         i++;
-      }
 
   }
 
 }
-//calculating magnitudes for axes
+}
+
 float magfunction1(float one){
   float mags = sqrt(sq(one));
   return mags;
@@ -180,37 +194,4 @@ float delta(float vx, float run_vx)
   float delta = vx-run_vx;
   return delta;
 }
-
-//Pin Interrupt on 3
-//ISR(PCINT19__vect)
-//{
-//  byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);   // This is checking the MPU addess default is 71
-//  if (c == 0x71)
-//  {
-//    //uint8_t SmpRtDiv = 0x09;        // This is the number the fundamental freq of MPU sampler is divided by +1 the default fund freq is 1kHz IE for a 100Hz refresh SmpRtDiv = 9
-//    Serial.println("MPU9250 is online again...");
-//    myIMU.MPU9250SelfTest(myIMU.SelfTest); //Check Biases
-//    //myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias); //Load Biases into registers
-//    myIMU.initMPU9250();
-//    //myIMU.writeByte(MPU9250_ADDRESS, SMPLRT_DIV, SmpRtDiv); // Sets the MPU sample rate to 100Hz
-//    myIMU.getAres(); // Sets the DAC resolution
-//    Serial.print("MPU has been re-initialized.");
-//  }
-//}
-
-//void reconfigure()
-//{
-//  byte c = myIMU.readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);   // This is checking the MPU addess default is 71
-//  if (c == 0x71)
-//  {
-//    //uint8_t SmpRtDiv = 0x09;        // This is the number the fundamental freq of MPU sampler is divided by +1 the default fund freq is 1kHz IE for a 100Hz refresh SmpRtDiv = 9
-//    Serial.println("MPU9250 is online again...");
-//    myIMU.MPU9250SelfTest(myIMU.SelfTest); //Check Biases
-//    //myIMU.calibrateMPU9250(myIMU.gyroBias, myIMU.accelBias); //Load Biases into registers
-//    myIMU.initMPU9250();
-//    //myIMU.writeByte(MPU9250_ADDRESS, SMPLRT_DIV, SmpRtDiv); // Sets the MPU sample rate to 100Hz
-//    myIMU.getAres(); // Sets the DAC resolution
-//    Serial.print("MPU has been re-initialized.");
-//  }
-//}
 
