@@ -4,6 +4,8 @@ import java.util.UUID;
 
 public class Constants {
 
+
+
     public static String SERVICE_STRING = "0000FFE0-0000-1000-8000-00805F9B34FB";
     public static UUID SERVICE_UUID = UUID.fromString(SERVICE_STRING);
 

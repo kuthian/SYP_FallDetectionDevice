@@ -14,7 +14,9 @@
             android:id="@+id/clear_log_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/clear"/>
+            android:text="@string/clear"
+            android:backgroundTint="@color/DarkHealthyBlue"
+            android:textColor="@color/Ivory" />
 
         <ScrollView
             android:id="@+id/log_scroll_view"
