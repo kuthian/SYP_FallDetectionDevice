@@ -56,10 +56,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 
+import static com.example.fallcompanion.Constants.SAVED_ON_OR_OFF_LOCATION;
+import static com.example.fallcompanion.Constants.SAVED_SEEKBAR_VALUE_LOCATION;
 import static com.example.fallcompanion.Constants.SCAN_PERIOD;
 import static com.example.fallcompanion.Constants.SERVICE_UUID;
 
-//import com.example.fallcompanion.databinding.ActivityMainBinding;
+import static com.example.fallcompanion.Constants.SAVED_NUMBER_LOCATION_1;
+import static com.example.fallcompanion.Constants.SAVED_NUMBER_LOCATION_2;
+import static com.example.fallcompanion.Constants.SAVED_NUMBER_LOCATION_3;
+import static com.example.fallcompanion.Constants.SAVED_NUMBER_LOCATION_4;
+
+import static com.example.fallcompanion.Constants.SAVED_NAME_LOCATION_1;
+import static com.example.fallcompanion.Constants.SAVED_NAME_LOCATION_2;
+import static com.example.fallcompanion.Constants.SAVED_NAME_LOCATION_3;
+import static com.example.fallcompanion.Constants.SAVED_NAME_LOCATION_4;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -71,31 +81,32 @@ public class MainActivity extends AppCompatActivity {
     private Ringtone defaultRingtone;
 
     //SharedPreferences Strings
-    private String SavedContactNumber1 = "com.example.app.savedcontactnumber1";
+    private String SavedContactNumber1 = SAVED_NUMBER_LOCATION_1;
+    private String SavedContactNumber2 = SAVED_NUMBER_LOCATION_2;
+    private String SavedContactNumber3 = SAVED_NUMBER_LOCATION_3;
+    private String SavedContactNumber4 = SAVED_NUMBER_LOCATION_4;
+    private String SavedSeekBarValue = SAVED_SEEKBAR_VALUE_LOCATION;
+    private String SavedOnOrOFf = SAVED_ON_OR_OFF_LOCATION;
 
-    private String SavedContactNumber2 = "com.example.app.savedcontactnumber2";
-
-    private String SavedContactNumber3 = "com.example.app.savedcontactnumber3";
-
-    private String SavedContactNumber4 = "com.example.app.savedcontactnumber4";
-
-    private String SavedSeekBarValue = "com.example.app.savedseekbarvalue";
-
-    private String SavedOnOrOFf = "com.example.app.savedonoroff";
-
-    //Phone number strings
+    //Phone number buffers
     private String SavedPhoneNumber1;
     private String SavedPhoneNumber2;
     private String SavedPhoneNumber3;
     private String SavedPhoneNumber4;
 
+    //Default Settings variables
     private Boolean DefaultSavedOnOrOff = false;
     private String DefaultCountdownEventTime = "30";
+
+    //Settings variables
+    private int CountdownEventTime;
+    private Boolean OnOrOffState;
+
+    //Event Strings
     private String longitude = "0";
     private String latitude = "0";
     private String FallTime = "0";
-    private int CountdownEventTime;
-    private Boolean OnOrOffState;
+
 
     Vibrator smsVib;
 
@@ -114,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean mScanning;
     private Handler mHandler;
-    private Handler mLogHandler;
+    //private Handler mLogHandler;
     private Map<String, BluetoothDevice> mScanResults;
 
     private boolean mConnected = false;
@@ -453,13 +464,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "OpenEmergencyContacts: End");
     }
 
-    public void OpenFallData(View view) {
-        Log.d(TAG, "OpenFallData: Begin");
-        Intent intent = new Intent(this, FallData.class);
-        startActivity(intent);
-        Log.d(TAG, "OpenFallData: End");
-    }
-
     public void OpenAlertSettings(View view) {
         Log.d(TAG, "OpenAlertSettings: Begin");
         Intent intent = new Intent(this, AlertSettings.class);
@@ -728,11 +732,11 @@ public class MainActivity extends AppCompatActivity {
                 disconnectGattServer();
 
                 return;
-            } else if (status != BluetoothGatt.GATT_SUCCESS) {
+            }
+             else if (status != BluetoothGatt.GATT_SUCCESS) {
                 // handle anything not SUCCESS as failure
                 logError("Connection not GATT sucess status " + status);
                 //disconnectGattServer();
-                return;
             }
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
