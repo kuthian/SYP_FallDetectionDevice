@@ -1,4 +1,4 @@
-package com.example.fallcompanion.client;
+package com.example.TrustFall.client;
 
 import android.bluetooth.BluetoothDevice;
 import android.databinding.BaseObservable;

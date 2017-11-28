@@ -1,4 +1,4 @@
-package com.example.fallcompanion;
+package com.example.TrustFall;
 
 import android.Manifest;
 import android.app.NotificationManager;
@@ -41,9 +41,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.fallcompanion.client.ClientActivity;
-import com.example.fallcompanion.util.BluetoothUtils;
-import com.example.fallcompanion.util.StringUtils;
+import com.example.TrustFall.client.ClientActivity;
+import com.example.TrustFall.util.BluetoothUtils;
+import com.example.TrustFall.util.StringUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -56,20 +56,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 
-import static com.example.fallcompanion.Constants.SAVED_ON_OR_OFF_LOCATION;
-import static com.example.fallcompanion.Constants.SAVED_SEEKBAR_VALUE_LOCATION;
-import static com.example.fallcompanion.Constants.SCAN_PERIOD;
-import static com.example.fallcompanion.Constants.SERVICE_UUID;
+import static com.example.TrustFall.Constants.SAVED_ON_OR_OFF_LOCATION;
+import static com.example.TrustFall.Constants.SAVED_SEEKBAR_VALUE_LOCATION;
+import static com.example.TrustFall.Constants.SCAN_PERIOD;
+import static com.example.TrustFall.Constants.SERVICE_UUID;
 
-import static com.example.fallcompanion.Constants.SAVED_NUMBER_LOCATION_1;
-import static com.example.fallcompanion.Constants.SAVED_NUMBER_LOCATION_2;
-import static com.example.fallcompanion.Constants.SAVED_NUMBER_LOCATION_3;
-import static com.example.fallcompanion.Constants.SAVED_NUMBER_LOCATION_4;
-
-import static com.example.fallcompanion.Constants.SAVED_NAME_LOCATION_1;
-import static com.example.fallcompanion.Constants.SAVED_NAME_LOCATION_2;
-import static com.example.fallcompanion.Constants.SAVED_NAME_LOCATION_3;
-import static com.example.fallcompanion.Constants.SAVED_NAME_LOCATION_4;
+import static com.example.TrustFall.Constants.SAVED_NUMBER_LOCATION_1;
+import static com.example.TrustFall.Constants.SAVED_NUMBER_LOCATION_2;
+import static com.example.TrustFall.Constants.SAVED_NUMBER_LOCATION_3;
+import static com.example.TrustFall.Constants.SAVED_NUMBER_LOCATION_4;
 
 
 public class MainActivity extends AppCompatActivity {

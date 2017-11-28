@@ -1,4 +1,4 @@
-package com.example.fallcompanion.util;
+package com.example.TrustFall.util;
 
 import android.support.annotation.Nullable;
 import android.util.Log;

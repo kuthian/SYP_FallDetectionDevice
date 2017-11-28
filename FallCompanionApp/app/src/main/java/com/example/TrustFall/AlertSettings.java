@@ -1,4 +1,4 @@
-package com.example.fallcompanion;
+package com.example.TrustFall;
 
 import android.content.Context;
 import android.content.SharedPreferences;

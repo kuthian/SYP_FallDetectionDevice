@@ -1,4 +1,4 @@
-package com.example.fallcompanion.util;
+package com.example.TrustFall.util;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static com.example.fallcompanion.Constants.CHARACTERISTIC_ECHO_STRING;
-import static com.example.fallcompanion.Constants.SERVICE_STRING;
+import static com.example.TrustFall.Constants.CHARACTERISTIC_ECHO_STRING;
+import static com.example.TrustFall.Constants.SERVICE_STRING;
 
 public class BluetoothUtils {
 

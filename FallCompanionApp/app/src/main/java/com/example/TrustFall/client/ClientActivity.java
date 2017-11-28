@@ -1,4 +1,4 @@
-package com.example.fallcompanion.client;
+package com.example.TrustFall.client;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -26,22 +26,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
-import com.example.fallcompanion.AlertSettings;
-import com.example.fallcompanion.R;
-import com.example.fallcompanion.databinding.ActivityClientBinding;
-import com.example.fallcompanion.databinding.ViewGattServerBinding;
-import com.example.fallcompanion.util.BluetoothUtils;
-import com.example.fallcompanion.util.StringUtils;
+import com.example.TrustFall.R;
+import com.example.TrustFall.databinding.ActivityClientBinding;
+import com.example.TrustFall.databinding.ViewGattServerBinding;
+import com.example.TrustFall.util.BluetoothUtils;
+import com.example.TrustFall.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.example.fallcompanion.MainActivity;
-
-import static com.example.fallcompanion.Constants.SCAN_PERIOD;
-import static com.example.fallcompanion.Constants.SERVICE_UUID;
+import static com.example.TrustFall.Constants.SCAN_PERIOD;
+import static com.example.TrustFall.Constants.SERVICE_UUID;
 
 public class ClientActivity extends AppCompatActivity {
 

@@ -1,13 +1,7 @@
-package com.example.fallcompanion;
+package com.example.TrustFall;
 
-import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.util.Log;
-import android.view.Gravity;
 import android.widget.Toast;
 
 /**

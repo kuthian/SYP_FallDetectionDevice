@@ -1,4 +1,4 @@
-package com.example.fallcompanion;
+package com.example.TrustFall;
 
 import java.util.UUID;
 

@@ -1,4 +1,4 @@
-package com.example.fallcompanion.util;
+package com.example.TrustFall.util;
 
 public class ByteUtils {
 

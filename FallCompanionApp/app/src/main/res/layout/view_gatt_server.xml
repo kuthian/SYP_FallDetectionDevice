@@ -5,7 +5,7 @@
 
         <variable
             name="viewModel"
-            type="com.example.fallcompanion.client.GattServerViewModel"/>
+            type="com.example.TrustFall.client.GattServerViewModel"/>
 
     </data>
 
