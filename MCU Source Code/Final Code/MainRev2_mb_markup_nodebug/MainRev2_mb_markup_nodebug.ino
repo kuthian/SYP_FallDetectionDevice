@@ -2,9 +2,12 @@
 #include <quaternionFilters.h>
 #include "MPU9250.h"            // Sparkfun Library
 #include <AltSoftSerial.h>     // Bluetooth Serial Connection
+#include <SoftSerial.h>
+
 
 MPU9250 myIMU;                  // Define the I2C address for the MPU
 AltSoftSerial BT;
+SoftwareSerial BT2(5, 6);        // Init Blutooth Serial Rx Pin 5, Tx Pin 6
 
 float run_vx=0;
 float run_vy=0;
@@ -42,7 +45,8 @@ void setup()
 //  const byte recal = 3;
 //  pinMode(recal, INPUT);
 //  attachInterrupt(digitalPinToInterrupt(recal), reconfigure, LOW);
-  BT.begin(38400);              // set the data rate for the SoftwareSerial port
+  BT.begin(9600);              // set the data rate for the SoftwareSerial port
+  BT.begin(
     
   Wire.begin();                 // init I2C connection
   TWBR = 12;                    // 400 kbit/sec I2C speed
@@ -138,6 +142,8 @@ void loop()
         if ((abs(dx) > threshold) || (abs(dy) > threshold) || (abs(dz) > threshold) || (abs(dxy) > threshold) || (abs(dxz) > threshold) || (abs(dyz) > threshold) || (abs(dxyz) > threshold))
         {
           BT.print("ALERT");
+          BT2.print("ALERT");
+          
         }
       }
 
