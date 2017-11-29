@@ -1,17 +1,14 @@
 package com.example.fallcompanion;
-
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 public class EmergencyContacts extends AppCompatActivity {
 
-    private static final String TAG = "EMERGENCYCONTACTS";
+    private static final String TAG = "EMERGENCY_CONTACTS";
 
     static public SharedPreferences prefs;
 
