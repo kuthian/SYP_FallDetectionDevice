@@ -1,13 +1,21 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        TrustFallConfig {
+            keyAlias 'TrustFallKeyAlias'
+            keyPassword 'mickeymouse1'
+            storeFile file('C:/Users/gqb1_000/Google Drive/For Reference/KeyStorePass/TrustFallKeyPass.jks')
+            storePassword 'mickeymouse1'
+        }
+    }
     compileSdkVersion 26
     buildToolsVersion '26.0.2'
     defaultConfig {
-        applicationId "com.example.fallcompanion"
+        applicationId "com.kapp.fallcompanion"
         minSdkVersion 15
         targetSdkVersion 26
-        versionCode 1
+        versionCode 2
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -15,6 +23,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.TrustFallConfig
+        }
+        debug {
+            signingConfig signingConfigs.TrustFallConfig
         }
     }
     compileOptions {
@@ -27,7 +39,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
